@@ -1,0 +1,637 @@
+{
+ "extra_questions": [
+  {
+   "id": "found-ex-1",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "Your `remove_team_member` tool uses a `dry_run: boolean` parameter for previewing impacts before execution. Production monitoring shows the agent bypasses the preview step by calling with `dry_run=false` directly. You need to ensure every removal is preceded by a preview that the user explicitly confirms.",
+   "question": "What is the most reliable approach?",
+   "options": [
+    {
+     "key": "A",
+     "text": "Add server-side validation that permits `dry_run=false` only when a `dry_run=true` call with identical parameters occurred within the past 60 seconds."
+    },
+    {
+     "key": "B",
+     "text": "Annotate the tool as requiring confirmation and configure the orchestration layer to prompt the user for approval before forwarding any calls to annotated tools."
+    },
+    {
+     "key": "C",
+     "text": "Add detailed instructions and few-shot examples to the tool description requiring the agent to always call with `dry_run=true` first and wait for user confirmation before calling again."
+    },
+    {
+     "key": "D",
+     "text": "Replace with two tools: `preview_remove_member` returns impact details and a single-use confirmation token; `execute_remove_member` requires that token, binding execution to the preview."
+    }
+   ],
+   "answer": [
+    "D"
+   ],
+   "explanation": "The two-tool token-binding approach makes it architecturally impossible to execute without a prior preview—the execute tool literally requires a token that only the preview tool can generate. This is the only approach that enforces the constraint at the code level rather than relying on LLM compliance with instructions (C), timing heuristics (A), or orchestration infrastructure (B).",
+   "domain_id": 2
+  },
+  {
+   "id": "found-ex-2",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "Production monitoring shows your `search_catalog` tool fails 12% of the time: 8% are network timeouts that succeed when retried, and 4% are query syntax errors that never succeed regardless of retries. Currently both error types are returned identically, causing wasted retries.",
+   "question": "How should you modify the tool's error handling?",
+   "options": [
+    {
+     "key": "A",
+     "text": "Add few-shot examples to your system prompt demonstrating how to distinguish network errors from syntax errors."
+    },
+    {
+     "key": "B",
+     "text": "Apply exponential backoff retry logic to all errors uniformly."
+    },
+    {
+     "key": "C",
+     "text": "Implement automatic retry with backoff for network timeouts inside the tool; return syntax errors immediately with parameter validation details."
+    },
+    {
+     "key": "D",
+     "text": "Return all errors with a `retryable` boolean flag and error type details."
+    }
+   ],
+   "answer": [
+    "C"
+   ],
+   "explanation": "Handling retries at the tool level for transient errors is the correct abstraction boundary—the tool has definitive knowledge of the error type and can implement deterministic retry logic without relying on the agent to interpret a flag (D) or follow prompt-level instructions (A). Uniform backoff (B) wastes time on syntax errors that will never succeed.",
+   "domain_id": 2
+  },
+  {
+   "id": "found-ex-3",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "Over several turns discussing investment strategy, a user stated \"I have a very low risk tolerance\" and later \"I want to maximize my returns.\" They now ask: \"What should I invest in?\"",
+   "question": "Which approach best ensures the recommendation aligns with the user's actual priority?",
+   "options": [
+    {
+     "key": "A",
+     "text": "Surface the contradiction and ask the user to clarify which matters more."
+    },
+    {
+     "key": "B",
+     "text": "Provide separate recommendations for both scenarios."
+    },
+    {
+     "key": "C",
+     "text": "Proceed with the most recently stated preference."
+    },
+    {
+     "key": "D",
+     "text": "Recommend a balanced portfolio without addressing the conflict."
+    }
+   ],
+   "answer": [
+    "A"
+   ],
+   "explanation": "When user preferences directly contradict each other, surfacing the conflict and asking for clarification is the only way to guarantee the recommendation aligns with the user's true intent. Any other approach involves making an assumption that may be wrong—maximizing returns and low risk tolerance are fundamentally incompatible goals that require a human decision.",
+   "domain_id": 5
+  },
+  {
+   "id": "found-ex-4",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "Users refine playlist preferences over multiple conversation turns. Two messages after a user said \"I love jazz,\" Claude asks \"What genres do you enjoy?\"",
+   "question": "What is the most likely cause?",
+   "options": [
+    {
+     "key": "A",
+     "text": "Claude requires a vector database connection to maintain conversation memory."
+    },
+    {
+     "key": "B",
+     "text": "The model's context window has been exceeded."
+    },
+    {
+     "key": "C",
+     "text": "The Claude API requires a `session_id` parameter."
+    },
+    {
+     "key": "D",
+     "text": "Your application isn't including prior messages in the `messages` array."
+    }
+   ],
+   "answer": [
+    "D"
+   ],
+   "explanation": "Claude has no server-side memory—every API call is stateless. Without including the full conversation history in the `messages` array of each request, Claude has no knowledge of prior turns. Vector databases (A) and `session_id` (C) are not part of Claude's architecture; context window overflow (B) is impossible for two-message exchanges.",
+   "domain_id": 5
+  },
+  {
+   "id": "found-ex-5",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "After a 40-minute cooking session, the conversation reaches 78,000 tokens. History includes allergies, recipe scaling, clarified cooking terms, and general discussion. You must reduce tokens while preserving important information.",
+   "question": "What approach best balances preservation with token reduction?",
+   "options": [
+    {
+     "key": "A",
+     "text": "Summarize the entire conversation history."
+    },
+    {
+     "key": "B",
+     "text": "Keep only the most recent 20,000 tokens."
+    },
+    {
+     "key": "C",
+     "text": "Extract critical structured data (allergies, quantities, preferences), summarize general discussion, and keep recent exchanges verbatim."
+    },
+    {
+     "key": "D",
+     "text": "Store the full conversation externally and retrieve relevant parts via semantic search."
+    }
+   ],
+   "answer": [
+    "C"
+   ],
+   "explanation": "The hybrid approach preserves the highest-value information at the lowest cost. Critical facts like allergies and recipe quantities are extracted into a compact structured block (preventing the precision loss that occurs during summarization), general discussion is summarized, and recent exchanges are kept verbatim for conversational coherence. Options A and B risk losing critical dietary information; D is architectural overkill for a single cooking session.",
+   "domain_id": 5
+  },
+  {
+   "id": "found-ex-6",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "Users report that during extended conversations the assistant loses track of earlier topics and preferences. Your current implementation keeps only the last 25 message pairs.",
+   "question": "What is the most effective solution?",
+   "options": [
+    {
+     "key": "A",
+     "text": "Hybrid approach: summarize older messages while keeping recent ones verbatim."
+    },
+    {
+     "key": "B",
+     "text": "Vector similarity search over the full conversation history."
+    },
+    {
+     "key": "C",
+     "text": "Increase the window to 50 message pairs."
+    },
+    {
+     "key": "D",
+     "text": "Summarize dropped messages every turn and prepend the running summary."
+    }
+   ],
+   "answer": [
+    "A"
+   ],
+   "explanation": "The hybrid approach addresses both dimensions of the problem: retaining exact recent context (critical for conversational coherence) while maintaining a compressed representation of earlier preferences (preventing total loss when pairs are dropped). Increasing the window (C) simply delays the same problem. Vector search (B) may miss important context that isn't semantically similar to the current query. Full per-turn summarization (D) adds overhead and accumulates summarization errors.",
+   "domain_id": 5
+  },
+  {
+   "id": "found-ex-7",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "Users report that latency increases and costs rise when conversations exceed 50 turns.",
+   "question": "What is the primary cause?",
+   "options": [
+    {
+     "key": "A",
+     "text": "The entire conversation history is included with each API request."
+    },
+    {
+     "key": "B",
+     "text": "The model generates progressively longer responses."
+    },
+    {
+     "key": "C",
+     "text": "Database operations slow down as history grows."
+    },
+    {
+     "key": "D",
+     "text": "The model builds an internal user profile requiring more processing."
+    }
+   ],
+   "answer": [
+    "A"
+   ],
+   "explanation": "Claude's API is fully stateless—every request must include the complete conversation history in the `messages` array. As conversations grow, each request carries more tokens, which directly increases both processing latency and cost. The model does not maintain any internal state between calls (D is false), and response length is not inherently tied to conversation length (B).",
+   "domain_id": 5
+  },
+  {
+   "id": "found-ex-8",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "After three months of weekly sessions, conversation history grows to 85,000 tokens. When a user asks \"What did we conclude about the theme of isolation?\", the assistant gives generic answers instead of referencing previous discussions.",
+   "question": "What is the most effective approach?",
+   "options": [
+    {
+     "key": "A",
+     "text": "Rolling window truncation."
+    },
+    {
+     "key": "B",
+     "text": "Progressive summarization capturing key conclusions."
+    },
+    {
+     "key": "C",
+     "text": "Semantic embeddings with retrieval of relevant exchanges."
+    },
+    {
+     "key": "D",
+     "text": "Add structured XML tags marking discussion conclusions."
+    }
+   ],
+   "answer": [
+    "C"
+   ],
+   "explanation": "Semantic search over conversation history is the only approach that scales to three months of discussion while being able to surface specific relevant exchanges on demand. Rolling window (A) would discard most of the history. Progressive summarization (B) compresses discussions into abstractions that lose the specific conclusions users are asking about. XML tags (D) require restructuring all past content and don't solve the retrieval problem at this scale.",
+   "domain_id": 5
+  },
+  {
+   "id": "found-ex-9",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "During QA testing, Claude follows system prompt guidelines for the first 10–15 turns, but later responses deviate. The conversation is still within token limits.",
+   "question": "What is the best solution?",
+   "options": [
+    {
+     "key": "A",
+     "text": "Move behavioral guidelines into the first user message."
+    },
+    {
+     "key": "B",
+     "text": "Start a new conversation after 20 turns."
+    },
+    {
+     "key": "C",
+     "text": "Insert user-role messages reinforcing guidelines at conversation breakpoints."
+    },
+    {
+     "key": "D",
+     "text": "Use post-response validation to regenerate non-compliant responses."
+    }
+   ],
+   "answer": [
+    "C"
+   ],
+   "explanation": "Periodic injection of behavioral reminders directly combats instruction drift by re-establishing constraints at regular intervals as conversation history accumulates. Moving guidelines to the first user message (A) reduces their authority. Starting a new conversation (B) destroys context. Post-response validation (D) is corrective rather than preventive and adds significant latency.",
+   "domain_id": 5
+  },
+  {
+   "id": "found-ex-10",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "Your AI tutor has a 2,800-token system prompt defining teaching methodology and adaptation rules. After 12 turns, the assistant starts ignoring proficiency levels.",
+   "question": "What is the most effective fix?",
+   "options": [
+    {
+     "key": "A",
+     "text": "Inject reminders every 4–5 turns."
+    },
+    {
+     "key": "B",
+     "text": "Replace verbose rules with few-shot examples demonstrating proficiency-level adaptation."
+    },
+    {
+     "key": "C",
+     "text": "Place critical rules at the end of the system prompt."
+    },
+    {
+     "key": "D",
+     "text": "Evaluate responses and regenerate if difficulty level mismatches."
+    }
+   ],
+   "answer": [
+    "B"
+   ],
+   "explanation": "A 2,800-token system prompt with declarative rules is vulnerable to drift because abstract rules require the model to reason about them on every turn. Replacing verbose rules with concrete few-shot examples that demonstrate correct proficiency-level adaptation gives the model clear behavioral patterns to match—this is more reliably followed across many turns than abstract instructions. Reminder injection (A) helps but addresses symptoms; end-placement (C) helps initially but not with turn-level drift; regeneration (D) is expensive and corrective.",
+   "domain_id": 4
+  },
+  {
+   "id": "found-ex-11",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "Your assistant must maintain an enthusiastic tone, explain its reasoning, and ask clarifying questions. Where should these behavioral guidelines be defined?",
+   "question": "Where should these behavioral guidelines be defined?",
+   "options": [
+    {
+     "key": "A",
+     "text": "Prepended to each user message."
+    },
+    {
+     "key": "B",
+     "text": "In the system prompt."
+    },
+    {
+     "key": "C",
+     "text": "In the first assistant message."
+    },
+    {
+     "key": "D",
+     "text": "In environment variables."
+    }
+   ],
+   "answer": [
+    "B"
+   ],
+   "explanation": "The system prompt is specifically designed for persistent behavioral constraints and guidelines that apply throughout the entire conversation. Prepending to each user message (A) is redundant overhead. The first assistant message (C) is unreliable because the model can deviate from its own prior statements. Environment variables (D) have no effect on model behavior.",
+   "domain_id": 4
+  },
+  {
+   "id": "found-ex-12",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "Users report repetitive response openings like \"Certainly!\" and \"I'd be happy to help!\"",
+   "question": "What is the most effective approach?",
+   "options": [
+    {
+     "key": "A",
+     "text": "Append a partial assistant message with a direct response opening."
+    },
+    {
+     "key": "B",
+     "text": "Lower the temperature setting."
+    },
+    {
+     "key": "C",
+     "text": "Post-process responses to remove greetings."
+    },
+    {
+     "key": "D",
+     "text": "Add system prompt instructions to avoid those phrases."
+    }
+   ],
+   "answer": [
+    "A"
+   ],
+   "explanation": "Prefilling the assistant's response with the beginning of a direct answer prevents greeting patterns at the generation level—the model continues from the prefill rather than generating new opening phrases. System prompt instructions (D) can help but are less reliable since the model may still produce variants. Post-processing (C) is a fragile workaround. Temperature (B) controls randomness, not specific phrase patterns.",
+   "domain_id": 4
+  },
+  {
+   "id": "found-ex-13",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "A webhook notifies your system that a user's package has shipped while the user is actively chatting. You want the assistant to incorporate this naturally into the next response.",
+   "question": "What is the best approach?",
+   "options": [
+    {
+     "key": "A",
+     "text": "Add shipping status to the system prompt."
+    },
+    {
+     "key": "B",
+     "text": "Send an immediate synthetic user message."
+    },
+    {
+     "key": "C",
+     "text": "Force the assistant to call a status tool on each turn."
+    },
+    {
+     "key": "D",
+     "text": "Append the status update as a prefix to the next user message."
+    }
+   ],
+   "answer": [
+    "D"
+   ],
+   "explanation": "Prefixing the status update to the next user message injects real-time context at a natural conversation boundary without disrupting the flow. Modifying the system prompt (A) requires rebuilding the session or is architecturally cumbersome. A synthetic user message (B) can break the natural dialogue flow and confuse attribution. Forcing a tool call each turn (C) is wasteful when events are rare.",
+   "domain_id": 5
+  },
+  {
+   "id": "found-ex-14",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "Users frequently send requests like \"Book a venue for the party.\" The assistant asks 4+ clarifying questions, causing 35% abandonment.",
+   "question": "What approach best improves the trade-off?",
+   "options": [
+    {
+     "key": "A",
+     "text": "Proceed with hidden defaults."
+    },
+    {
+     "key": "B",
+     "text": "Ask all clarifying questions in one compound message."
+    },
+    {
+     "key": "C",
+     "text": "State assumptions explicitly and proceed while inviting corrections."
+    },
+    {
+     "key": "D",
+     "text": "Use a structured intake form."
+    }
+   ],
+   "answer": [
+    "C"
+   ],
+   "explanation": "Stating assumptions explicitly and proceeding gives the user an immediate, useful response while preserving their ability to correct wrong assumptions. Hidden defaults (A) leave the user unaware of what was assumed. A compound question list (B) still demands upfront effort from the user. A structured form (D) adds more friction, not less—contradicting the goal of reducing abandonment.",
+   "domain_id": 5
+  },
+  {
+   "id": "found-ex-15",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "Your assistant uses a contractor-persona system prompt. Early turns follow the rules, but by turn 7 the assistant gives generic advice. Conversation length is only 2,500 tokens.",
+   "question": "What is the most likely cause?",
+   "options": [
+    {
+     "key": "A",
+     "text": "System prompts only establish initial behavior."
+    },
+    {
+     "key": "B",
+     "text": "Model attention weakens as turns accumulate."
+    },
+    {
+     "key": "C",
+     "text": "Accumulated assistant responses dilute system prompt influence."
+    },
+    {
+     "key": "D",
+     "text": "The system prompt is only sent once."
+    }
+   ],
+   "answer": [
+    "C"
+   ],
+   "explanation": "As assistant responses accumulate in the conversation history, the proportion of text reflecting the system prompt's behavioral constraints decreases relative to the growing body of assistant-generated content. The model increasingly pattern-matches to its own prior outputs rather than the system prompt, compounding drift even at short token lengths. The system prompt is included in every API call (D is false as a standalone explanation), and model attention degradation (B) doesn't operate at 2,500 tokens.",
+   "domain_id": 5
+  },
+  {
+   "id": "found-ex-16",
+   "scenario": "Conversational AI Architecture Patterns",
+   "situation": "Users ask vague requests like \"Can you help with the report?\" The assistant responds by asking multiple questions (which report? what help? deadline?), causing 40% abandonment.",
+   "question": "What is the best solution?",
+   "options": [
+    {
+     "key": "A",
+     "text": "Make reasonable assumptions, state them explicitly, and offer to adjust."
+    },
+    {
+     "key": "B",
+     "text": "Classify ambiguity with a smaller model before responding."
+    },
+    {
+     "key": "C",
+     "text": "Use predefined interpretations without stating assumptions."
+    },
+    {
+     "key": "D",
+     "text": "Limit the assistant to one clarifying question per turn."
+    }
+   ],
+   "answer": [
+    "A"
+   ],
+   "explanation": "Proceeding with reasonable stated assumptions eliminates the back-and-forth entirely while keeping the user informed and in control. Predefined silent interpretations (C) leave users confused when the response doesn't match their intent. A single-question limit (D) still requires turns of back-and-forth. A smaller classification model (B) adds latency and infrastructure complexity without solving the core UX problem.",
+   "domain_id": 5
+  }
+ ],
+ "domain_tagging": {
+  "found-1": 5,
+  "found-2": 1,
+  "found-3": 5,
+  "found-4": 1,
+  "found-5": 5,
+  "found-6": 5,
+  "found-7": 2,
+  "found-8": 1,
+  "found-9": 5,
+  "found-10": 2,
+  "found-11": 1,
+  "found-12": 5,
+  "found-13": 5,
+  "found-14": 5,
+  "found-15": 2,
+  "found-16": 3,
+  "found-17": 4,
+  "found-18": 4,
+  "found-19": 4,
+  "found-20": 4,
+  "found-21": 4,
+  "found-22": 4,
+  "found-23": 4,
+  "found-24": 3,
+  "found-25": 3,
+  "found-26": 3,
+  "found-27": 4,
+  "found-28": 4,
+  "found-29": 4,
+  "found-30": 4,
+  "found-31": 3,
+  "found-32": 3,
+  "found-33": 3,
+  "found-34": 3,
+  "found-35": 3,
+  "found-36": 3,
+  "found-37": 3,
+  "found-38": 3,
+  "found-39": 3,
+  "found-40": 3,
+  "found-41": 3,
+  "found-42": 3,
+  "found-43": 3,
+  "found-44": 2,
+  "found-45": 5,
+  "found-46": 2,
+  "found-47": 4,
+  "found-48": 1,
+  "found-49": 5,
+  "found-50": 5,
+  "found-51": 1,
+  "found-52": 1,
+  "found-53": 1,
+  "found-54": 5,
+  "found-55": 5,
+  "found-56": 2,
+  "found-57": 2,
+  "found-58": 1,
+  "found-59": 1,
+  "found-60": 4
+ },
+ "domain_notes": [
+  {
+   "domain_id": 1,
+   "domain": "Agent architecture and orchestration",
+   "weight": 27,
+   "key_points": [
+    "The agent loop is driven by stop_reason: continue when it is \"tool_use\" (execute the tool, append its result to history, call Claude again) and stop only on \"end_turn\"; never parse assistant text or use arbitrary iteration limits as the primary completion signal.",
+    "The API is stateless: send the full conversation history on every request, and return tool results as tool_result content blocks inside user-role messages (there is no separate \"tool\" role).",
+    "Multi-agent systems use a hub-and-spoke topology: the coordinator owns task decomposition, delegation, result aggregation, dynamic subagent selection, error handling, and all inter-agent communication (for observability and uniform error control).",
+    "Subagents have isolated context and do not inherit the coordinator's conversation history — every subagent prompt must explicitly include all required context (documents, prior search results, output format requirements).",
+    "Subagents are spawned via the Task tool (the coordinator's allowed_tools must include \"Task\"); issuing multiple Task calls in one coordinator response runs the subagents in parallel.",
+    "AgentDefinition configures an agent with name, description, system_prompt, and allowed_tools — allowed_tools enforces the principle of least privilege per agent.",
+    "Overly narrow coordinator decomposition is a key failure mode: all subagents can succeed while the aggregated result misses large parts of the request (e.g., only visual-art subtasks for \"creative industries\").",
+    "To prevent duplicated work, the coordinator should explicitly partition the research space (distinct subtopics or source types) before delegating, and write subagent prompts in terms of goals and quality criteria rather than step-by-step instructions.",
+    "When ordering is critical (e.g., identity verification before refunds), use programmatic enforcement — preconditions that block downstream calls until prior steps complete — because prompts are probabilistic while code gives deterministic guarantees.",
+    "Agent SDK hooks intercept the lifecycle: PostToolUse transforms tool results (normalize dates, trim fields) before the model sees them; interception hooks block policy-violating calls (e.g., refunds above $500) and redirect to escalation.",
+    "Choose fixed pipelines (prompt chaining) for predictable, repeatable tasks and dynamic adaptive decomposition for open-ended investigations where subtasks emerge from intermediate results.",
+    "Escalation handoffs must carry a complete, self-contained structured summary (customer ID, issue summary, actions taken, recommended action, escalation reason) because the human operator does not see the full transcript.",
+    "Session management: --resume <session-name> continues a named session (risk of stale tool results), fork_session branches shared context to compare approaches, and a fresh session with a short summary beats resuming degraded context.",
+    "Coordinators run iterative refinement loops: evaluate synthesized output against quality criteria and re-route or re-run subtasks until the criteria are met."
+   ]
+  },
+  {
+   "domain_id": 2,
+   "domain": "Tool design and MCP integration",
+   "weight": 18,
+   "key_points": [
+    "Tool descriptions are the primary mechanism the model uses to select tools; include what the tool does and returns, input formats with example values, edge cases, and when to use it versus similar alternatives.",
+    "Overlapping or near-identical descriptions cause misrouting; rename and re-describe tools to remove semantic overlap (e.g., analyze_content → extract_web_results described in terms of web search and URLs).",
+    "System prompt wording can create unintended tool associations (e.g., \"always verify the customer\" over-triggers get_customer); suspect prompt-level steering when tool descriptions are already clear.",
+    "tool_choice controls selection: {\"type\": \"auto\"} (default, model decides), {\"type\": \"any\"} (must call some tool — guarantees structured output), and {\"type\": \"tool\", \"name\": ...} (forces a specific tool to guarantee execution order).",
+    "Too many tools per agent reduces selection reliability (the guide contrasts ~4–5 role-relevant tools with 18); scope each agent to its role-relevant tools plus a limited set of cross-role utilities.",
+    "Replace general-purpose tools with constrained ones to make misuse impossible (e.g., fetch_url → load_document that validates URLs point to document formats) — least privilege enforced at the interface, not via instructions.",
+    "MCP tools report failure with isError: true; return structured error content (errorCategory transient/validation/permission, isRetryable, message, attempted query, partial results) instead of a generic \"Operation failed\".",
+    "Classify errors to drive recovery: transient (timeout, 503 — retry with exponential backoff), validation (fix input and retry), business/policy (not retryable — explain and offer alternatives), permission (escalate).",
+    "Distinguish access failures (a timeout requiring a retry decision) from valid empty results (\"0 results\" is a successful, informative query outcome); do local recovery (1–2 retries) for transient failures inside subagents and propagate only what they cannot resolve.",
+    "MCP defines three resource types — tools (actions), resources (readable context such as schemas, catalogs, documentation, which reduce exploratory tool calls), and prompts (templates); tools from all connected servers are discovered automatically and available at once.",
+    "MCP server scope: project .mcp.json at the repo root (version-controlled, team-shared, uses ${ENV_VAR} substitution so tokens are never committed) versus user-level ~/.claude.json for personal/experimental servers.",
+    "Prefer existing community MCP servers for standard integrations (GitHub, Jira, Slack); build custom servers only for unique, team-specific workflows.",
+    "Built-in tools: Glob finds files by name/pattern, Grep searches file contents, Read/Write handle whole files, Edit replaces via unique text match (fall back to Read + Write when the match is not unique), Bash runs shell commands; investigate incrementally (Grep entry points → Read → Grep usages).",
+    "Agents may prefer built-in tools (Read, Grep) over MCP tools with similar functionality; strengthen MCP tool descriptions by highlighting the unique data or capabilities built-ins cannot provide."
+   ]
+  },
+  {
+   "domain_id": 3,
+   "domain": "Claude Code configuration and workflows",
+   "weight": 20,
+   "key_points": [
+    "CLAUDE.md hierarchy: user-level ~/.claude/CLAUDE.md (personal, not in VCS), project-level .claude/CLAUDE.md or root CLAUDE.md (shared via VCS), and directory-level CLAUDE.md files; a new teammate missing instructions usually means they live in user-level files instead of project-level.",
+    "@path imports modularize CLAUDE.md (e.g., @./standards/coding-style.md): the @ sits immediately before the path, relative paths resolve against the file containing the import, and maximum import nesting depth is 5.",
+    ".claude/rules/ holds topical rule files; YAML frontmatter paths (e.g., paths: [\"src/api/**/*\"] or [\"**/*.test.tsx\"]) make a rule load only when Claude edits matching files, saving context and tokens.",
+    "Prefer path-glob rules for conventions spread across many directories (tests, migrations) and directory-level CLAUDE.md when conventions are tied to one directory.",
+    "Project slash commands live in .claude/commands/ (version-controlled, available to everyone who clones the repo); personal commands in ~/.claude/commands/; skills (.claude/skills/<name>/SKILL.md) are the current unified format — both create /name commands.",
+    "SKILL.md frontmatter: context: fork runs the skill in an isolated subagent so verbose output does not pollute the main session, allowed-tools restricts which tools the skill can use, and argument-hint prompts for missing arguments.",
+    "Personal skill variants go in ~/.claude/skills/ under a different name (e.g., /my-commit), because a same-named personal skill silently shadows the team skill and then misses team updates.",
+    "Skills are for on-demand workflows (review, migration, analysis); CLAUDE.md is for always-loaded standards — keep universal conventions in CLAUDE.md and task/workflow-specific guidance in skills.",
+    "Planning mode explores read-only (Read, Grep, Glob) and produces a user-approved plan before any change; use it for large multi-file changes, multiple viable approaches, architectural decisions, unfamiliar codebases, and 45+ file migrations; use direct execution for single-file, unambiguous fixes.",
+    "The Explore subagent isolates verbose codebase discovery and returns only a summary, protecting the main context window in multi-phase tasks.",
+    "/compact summarizes history to free the context window (exact numbers, dates, and specific details can be lost); /memory opens CLAUDE.md so notes and preferences persist across sessions.",
+    "In CI/CD, claude -p (--print) runs non-interactively (without it the job hangs waiting for input); --output-format json plus --json-schema yields parseable, schema-conformant findings for automated inline PR comments.",
+    "Session context isolation: the session that generated code is a weaker reviewer of it — use an independent instance; when re-reviewing after new commits, include prior findings and instruct Claude to report only new or unresolved issues, and include existing test files when generating tests to avoid duplicates.",
+    "Iterate with 2–3 concrete input/output examples (more effective than prose), test-driven iteration (write tests first), and the \"interview\" pattern where Claude asks clarifying questions before implementing."
+   ]
+  },
+  {
+   "domain_id": 4,
+   "domain": "Prompt engineering and structured output",
+   "weight": 20,
+   "key_points": [
+    "Explicit criteria beat vague instructions: define exactly when to flag (e.g., a comment is wrong only when it contradicts the code's actual behavior) and what NOT to flag, with severity levels anchored by concrete examples (CRITICAL/HIGH/MEDIUM/LOW).",
+    "When noisy categories erode developer trust, temporarily disable high-false-positive categories (style, naming, documentation) and keep high-precision ones (security, correctness) while prompts are improved, then re-enable.",
+    "Few-shot prompting (2–4 examples) is the most reliable way to get consistent formatting and decisions: target ambiguous scenarios with rationale, show the exact output structure (location, issue, severity, fix), and contrast acceptable vs problematic cases.",
+    "tool_use with a JSON schema is the most reliable structured-output mechanism: it guarantees syntactically valid JSON and required fields, but does not guarantee semantic correctness (values can still be wrong).",
+    "Schema design: mark fields required only when the information is always present, use nullable types ([\"string\", \"null\"]) so the model returns null instead of fabricating, and add \"other\"/\"unclear\" enum values with a detail field for extensibility.",
+    "Retry-with-feedback: on validation failure re-prompt with the original document, the previous extraction, and the specific error (e.g., \"total = 150 but sum(line_items) = 145\"); retry cannot help when the information is simply absent from the source.",
+    "Self-correction pattern: extract both stated_total and calculated_total and set a conflict_detected flag when they disagree, so discrepancies can be handled downstream.",
+    "Pydantic provides structural validation (types, requiredness, enums) plus custom semantic validators (sums reconcile, start < end), generates JSON Schema for tool_use as a single source of truth, and drives validate–retry loops.",
+    "Message Batches API: 50% cost savings, up to a 24-hour processing window with no latency SLA, and no multi-turn tool calling within a request; custom_id correlates results and lets you re-submit only failed documents.",
+    "Use synchronous calls for blocking or interactive work (pre-merge checks, live review); use batches for overnight, weekly, or bulk workloads, and plan submission windows against the 24-hour bound (a 30-hour deadline leaves a 6-hour submission window).",
+    "Self-review is limited because the generating session retains its reasoning and rationalizes its decisions — a second independent review instance without the generation context catches more subtle issues.",
+    "For large PRs (10+ files), single-pass review dilutes attention (shallow comments, missed bugs, inconsistent flags); restructure into per-file passes plus a separate cross-file integration pass — a bigger context window does not fix attention quality.",
+    "Add normalization rules to extraction prompts (dates as ISO 8601, currency as amount + code, percentages as decimals) so syntactically valid output stays semantically consistent.",
+    "Including rationale and a confidence estimate directly in each finding speeds developer triage without suppressing any findings."
+   ]
+  },
+  {
+   "domain_id": 5,
+   "domain": "Context management and reliability",
+   "weight": 15,
+   "key_points": [
+    "The context window holds the system prompt, full message history, tool definitions, and tool results; because the API is stateless, every request resends the entire history, so long conversations directly raise cost and latency.",
+    "Lost-in-the-middle: models reliably process the beginning and end of long inputs but miss the middle — put key findings at the top, action items at the end, and use explicit section headings to aid navigation.",
+    "Progressive summarization blurs numbers, percentages, and dates into vague language; extract transactional facts into a persistent \"case facts\" block included in every prompt outside the summarized history.",
+    "Trim verbose tool results to the fields the task needs (e.g., a PostToolUse hook keeping 5 of 40+ fields) and require subagents to return structured results rather than raw data dumps.",
+    "Valid escalation triggers: an explicit request for a human (escalate immediately), policy gaps or silence, inability to make progress after reasonable attempts, and financial operations above a threshold (enforce via hook); sentiment analysis and model self-rated confidence are unreliable triggers.",
+    "For frustrated customers, acknowledge the emotion, offer a concrete resolution, and escalate only if they reiterate wanting a human; when a search returns multiple matches, ask for an additional identifier rather than guessing.",
+    "Propagate structured error context from subagents (failure type, attempted query, partial results, alternative approaches, coverage impact) so the coordinator can decide to retry, reuse partial results, reassign, or annotate a gap.",
+    "Error anti-patterns to avoid: generic statuses (\"search unavailable\"), silent suppression (empty result marked as success), aborting the whole workflow on a single failure, and infinite retries inside a subagent.",
+    "Degrade gracefully: continue synthesis with partial results and annotate coverage per section (FULL/PARTIAL COVERAGE with the reason) so downstream consumers know exactly where gaps exist.",
+    "For large-codebase investigations: delegate verbose discovery to subagents, persist key findings in a scratchpad file, use /compact, and export structured agent state (per-agent files plus a manifest) for crash recovery and resume.",
+    "Calibrate human oversight with field-level confidence scores tuned on labeled validation sets: route high-confidence, stable-accuracy extractions to automation and low-confidence or ambiguous-source extractions to human review.",
+    "Use stratified random sampling of high-confidence extractions because an aggregate 97% accuracy can hide 40% errors on a specific document type; measure accuracy by document type and field, not only overall.",
+    "Preserve provenance through summarization with claim → source mappings (URL, source name, publication date, quote, confidence); keep conflicting values side by side with conflict_detected instead of arbitrarily picking one.",
+    "Include publication/collection dates so temporal differences are not misread as contradictions, and when user input is ambiguous or self-contradictory, surface the conflict and ask rather than assume."
+   ]
+  }
+ ]
+}

@@ -1,0 +1,698 @@
+[
+ {
+  "id": "found-new-1",
+  "scenario": "Document Processing Pipeline",
+  "situation": "A document pipeline calls Claude with three extraction tools defined (one each for invoices, contracts, and receipts). Compliance requires every document to yield structured JSON from one of these tools, but which tool applies depends on the document type. Currently, the model occasionally replies with a plain-text summary instead of calling any tool at all. You need to guarantee structured output while still letting the model pick the right extractor.",
+  "question": "Which configuration is most appropriate?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Set `tool_choice: {\"type\": \"auto\"}` so the model retains full discretion over text versus tool responses."
+   },
+   {
+    "key": "B",
+    "text": "Set `tool_choice: {\"type\": \"any\"}` so a tool call is mandatory, while the model still selects the best extraction tool for the document."
+   },
+   {
+    "key": "C",
+    "text": "Set `tool_choice: {\"type\": \"tool\", \"name\": \"extract_invoice\"}` so a deterministic tool always runs."
+   },
+   {
+    "key": "D",
+    "text": "Add strict JSON formatting instructions to the system prompt so even text replies are parseable."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "`tool_choice: \"any\"` forces the model to call some tool — guaranteeing schema-based structured output — while leaving the choice among the three extraction tools to the model, which is exactly what a mixed document stream needs. `auto` permits the observed text-only failure mode; forcing `extract_invoice` would be wrong for contracts and receipts; prompt-only formatting instructions cannot guarantee syntactically valid JSON the way tool_use with a schema does.",
+  "domain_id": 2
+ },
+ {
+  "id": "found-new-2",
+  "scenario": "Retail Assistant Agent",
+  "situation": "An agent uses an MCP tool `apply_discount_code`. When a customer tries to apply a promo code to an item that is already on sale, the backend rejects the call because promotion policy forbids stacking discounts. Today the tool returns `{\"isError\": true, \"content\": \"Operation failed\"}`, and the agent retries the call several times with small variations before giving up. You are redesigning the tool's error response.",
+  "question": "Which response design is most effective?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Keep `isError: true` but add retry hints so the agent can rephrase the request until it succeeds."
+   },
+   {
+    "key": "B",
+    "text": "Return a successful response with an empty result so the conversation flow is not interrupted."
+   },
+   {
+    "key": "C",
+    "text": "Return `isError: true` with structured content: `errorCategory: \"business\"`, `isRetryable: false`, and a clear user-facing explanation that the code cannot be combined with sale items."
+   },
+   {
+    "key": "D",
+    "text": "Return the raw promotion-policy document text without the `isError` flag and let the agent interpret the rules itself."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "A business-rule violation is a non-retryable error: the guide prescribes structured MCP errors with `errorCategory`, `isRetryable: false`, and a clear user-facing explanation so the agent stops retrying and can explain the outcome to the user. A generic message gives the agent no basis for deciding what to do, retry hints cause futile retry loops on a deterministic policy rejection, and reporting the failure as success hides it entirely.",
+  "domain_id": 2
+ },
+ {
+  "id": "found-new-3",
+  "scenario": "Project Management Integration",
+  "situation": "An agent using a Jira MCP server spends many exploratory tool calls at the start of every task — listing projects, then boards, then issue types — just to learn what exists. You want the agent to have an immediate 'map' of the available work items without taking actions. The MCP server supports all three primary resource types.",
+  "question": "Which MCP primitive best addresses this?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Expose the project and issue catalog as MCP resources so the agent can read the structure for context without exploratory tool calls."
+   },
+   {
+    "key": "B",
+    "text": "Add more specialized query tools so the agent can narrow down the data faster."
+   },
+   {
+    "key": "C",
+    "text": "Expand the existing tools' descriptions with longer usage instructions."
+   },
+   {
+    "key": "D",
+    "text": "Add an MCP prompt template that tells the agent to call list_projects first."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Resources are data the agent reads for context without taking actions; the guide highlights that a resource provides an immediate 'map' of what exists, eliminating exploratory tool-call chains. Adding more tools widens the selection surface rather than supplying catalog knowledge; richer descriptions change how tools are used but still require calls to learn state; a prompt template steering a tool call still costs the exploratory calls.",
+  "domain_id": 2
+ },
+ {
+  "id": "found-new-4",
+  "scenario": "Unified Support Agent",
+  "situation": "A support agent carries 18 tools spanning billing, shipping, accounts, and diagnostics in a single configuration. Telemetry shows rising tool-selection errors, and the agent sometimes uses tools from unrelated specializations even though each tool has a decent description. You want to improve selection reliability.",
+  "question": "Which change is most effective?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Make all 18 tool descriptions longer and more detailed."
+   },
+   {
+    "key": "B",
+    "text": "Add a few-shot routing table in the system prompt that covers all 18 tools."
+   },
+   {
+    "key": "C",
+    "text": "Set `tool_choice: \"any\"` so the model commits to a tool call earlier in each turn."
+   },
+   {
+    "key": "D",
+    "text": "Split the work into role-focused agents, each with only its 4-5 role-relevant tools plus a limited set of cross-role utilities."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "The guide states that too many tools per agent (e.g., 18 instead of 4-5) reduces tool-selection reliability, and agents given tools outside their specialization tend to misuse them; scoped, role-relevant toolsets fix the root cause. Longer descriptions and routing examples cannot compensate for overload, and `any` only guarantees that some tool is called — not the correct one.",
+  "domain_id": 2
+ },
+ {
+  "id": "found-new-5",
+  "scenario": "Internal Knowledge Search",
+  "situation": "A team ships an MCP server whose `search_knowledge_base` tool queries the company's internal wiki — the only place where resolution guides for legacy products live. In Claude Code sessions, the agent keeps answering with local Grep and Read and rarely calls the MCP tool, even when the wiki is the only source with the answer. The MCP tool's description is accurate but terse ('Searches the knowledge base').",
+  "question": "What is the recommended fix?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Remove the built-in Grep and Read tools from the session so the agent is forced to use the MCP tool."
+   },
+   {
+    "key": "B",
+    "text": "Rename the MCP tool to `grep_wiki` so it sounds more familiar to the model."
+   },
+   {
+    "key": "C",
+    "text": "Strengthen the MCP tool's description to highlight its concrete advantage — unique internal-wiki resolution data that built-in tools cannot provide."
+   },
+   {
+    "key": "D",
+    "text": "Add a PostToolUse hook that injects wiki search results after every Grep call."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "The guide notes agents may prefer built-in tools (Read, Grep) over MCP tools with similar functionality and recommends strengthening the MCP tool's description — highlighting concrete advantages, unique data, or context built-ins cannot provide. Removing built-in tools breaks legitimate local work; renaming does not change what the tool offers; and auto-injecting wiki results after every Grep call wastes calls and still does not teach selection.",
+  "domain_id": 2
+ },
+ {
+  "id": "found-new-6",
+  "scenario": "Jira Integration Proposal",
+  "situation": "A team wants Claude Code to read and update Jira tickets. One engineer proposes building a custom MCP server from scratch 'for full control,' estimating two to three weeks of work. Jira is a standard integration, and community MCP servers for it already exist.",
+  "question": "What is the best recommendation?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Use an existing community Jira MCP server, and reserve custom servers for unique, team-specific workflows."
+   },
+   {
+    "key": "B",
+    "text": "Build the custom server, because bespoke integrations always fit team workflows better."
+   },
+   {
+    "key": "C",
+    "text": "Skip MCP entirely and let Claude call the Jira REST API directly through Bash and curl."
+   },
+   {
+    "key": "D",
+    "text": "Wait until the Jira vendor ships an official MCP server before integrating at all."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "The guide is explicit: for standard integrations (Jira, GitHub, Slack), prefer existing community MCP servers; build your own only for unique, team-specific workflows. A custom build for a common integration spends weeks of effort unnecessarily; direct REST calls bypass MCP's discovery and structure; waiting indefinitely forfeits a working solution available today.",
+  "domain_id": 2
+ },
+ {
+  "id": "found-new-7",
+  "scenario": "Experimental MCP Server",
+  "situation": "A developer is prototyping an experimental MCP server that connects to a local vector database. They add it to the project's `.mcp.json` and commit; teammates who do not have that local database now get connection errors every time Claude Code starts.",
+  "question": "Where should this server configuration live while it is experimental?",
+  "options": [
+   {
+    "key": "A",
+    "text": "In the project `.mcp.json`, but flagged as experimental so teammates can ignore it."
+   },
+   {
+    "key": "B",
+    "text": "In the project CLAUDE.md, with instructions for connecting manually."
+   },
+   {
+    "key": "C",
+    "text": "In a `.claude/rules/` file with path frontmatter so it loads only for certain files."
+   },
+   {
+    "key": "D",
+    "text": "In the user configuration `~/.claude.json`, which is personal and not shared through version control."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "User-level MCP configuration lives in `~/.claude.json`: stored in the user's home directory, not shared via version control, and suited to personal experiments and testing. The project `.mcp.json` is version-controlled and meant for servers every contributor needs; there is no 'experimental' flag in it, and neither CLAUDE.md nor `.claude/rules/` files configure MCP servers.",
+  "domain_id": 2
+ },
+ {
+  "id": "found-new-8",
+  "scenario": "Bulk Code Adjustment",
+  "situation": "Claude Code is updating a logging call that appears identically in several functions of one large file. The Edit tool keeps failing because the old string matches multiple locations, and retrying with the same string does not help.",
+  "question": "What is the recommended fallback?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Retry Edit with a shorter old string to widen the match."
+   },
+   {
+    "key": "B",
+    "text": "Use Bash with sed to replace every occurrence without reviewing them individually."
+   },
+   {
+    "key": "C",
+    "text": "Fall back to Read then Write: read the full file and write back the complete updated content."
+   },
+   {
+    "key": "D",
+    "text": "Split the large file into smaller files so each Edit matches uniquely."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "The guide's guidance for built-in tools: when Edit fails due to non-unique matches, fall back to Read + Write — read the file, apply the changes, and write the full updated content. A shorter match string makes uniqueness worse, not better; a blind sed replace risks unintended changes; and restructuring the file is an out-of-scope workaround for a tool-usage problem.",
+  "domain_id": 2
+ },
+ {
+  "id": "found-new-9",
+  "scenario": "Invoice Data Extraction",
+  "situation": "An invoice extraction pipeline uses tool_use with a JSON schema in which `purchase_order_number` is listed as required. About 20% of invoices legitimately carry no PO number, and audits show the model invents plausible-looking PO numbers for those invoices.",
+  "question": "Which schema change fixes this?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Keep the field required but add a description telling the model to guess a value when it is missing."
+   },
+   {
+    "key": "B",
+    "text": "Move the PO number into a separate tool call so its failures are isolated."
+   },
+   {
+    "key": "C",
+    "text": "Restrict `purchase_order_number` to an enum of previously seen PO numbers."
+   },
+   {
+    "key": "D",
+    "text": "Make the field nullable/optional (`\"type\": [\"string\", \"null\"]`) with a description stating it should be null when the invoice has no PO number."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Required fields push the model to fabricate values when data is missing; the guide's schema-design rule is to mark fields required only when the information is always available, and to use nullable types so the model can return null instead of hallucinating. Instructing the model to guess amplifies fabrication, a second tool call changes nothing about the requiredness pressure, and an enum over historical values rejects genuinely new PO numbers.",
+  "domain_id": 4
+ },
+ {
+  "id": "found-new-10",
+  "scenario": "Support Ticket Classification",
+  "situation": "A ticket classifier uses a strict schema with `category` as an enum of [\"bug\", \"feature\", \"billing\"]. Review shows tickets that genuinely fit no category get forced into the nearest one, and reviewers cannot tell which classifications the model was unsure about.",
+  "question": "Which redesign follows the guide's schema-design rules?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Extend the enum with \"other\" plus a `category_detail` string field, and \"unclear\" for tickets the model cannot confidently classify."
+   },
+   {
+    "key": "B",
+    "text": "Drop the enum entirely and let the model write any free-text category."
+   },
+   {
+    "key": "C",
+    "text": "Keep the enum and add a post-processing step that randomly reassigns 10% of tickets for human review."
+   },
+   {
+    "key": "D",
+    "text": "Change `category` to an array so each ticket can receive multiple categories at once."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "The guide recommends enums with \"other\" plus a detail string so data outside the predefined categories is not lost, and an \"unclear\" value so an honest expression of uncertainty replaces a wrong category. Free text gives up schema reliability, random reassignment is arbitrary, and multi-label arrays do not address the forced-choice or uncertainty problems.",
+  "domain_id": 4
+ },
+ {
+  "id": "found-new-11",
+  "scenario": "Meeting Notes Extraction",
+  "situation": "An extraction pipeline produces syntactically valid JSON — enforced through a tool_use schema — but the values are inconsistent across documents: dates appear as 'yesterday' and 'next Friday,' amounts as 'five bucks' and '$5.' Downstream systems need comparable, normalized values.",
+  "question": "Which addition most effectively addresses this class of error?",
+  "options": [
+   {
+    "key": "A",
+    "text": "A stricter JSON schema with more required fields."
+   },
+   {
+    "key": "B",
+    "text": "A higher max_tokens limit so the model has room to spell values out."
+   },
+   {
+    "key": "C",
+    "text": "Normalization rules in the prompt — e.g., dates always ISO 8601 (computing absolute dates from relative ones), currency as numeric amount plus currency code."
+   },
+   {
+    "key": "D",
+    "text": "Retrying each extraction twice and keeping the longer response."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "These are semantic errors — the JSON is syntactically valid but the values are inconsistent — and schema enforcement alone cannot prevent them. The guide recommends adding normalization rules in the prompt (dates always ISO 8601, 'five bucks' -> amount 5 with currency code, percentages as decimals). A stricter schema still does not normalize values, token limits are irrelevant to formatting, and keeping the longer of two retries is not a normalization mechanism.",
+  "domain_id": 4
+ },
+ {
+  "id": "found-new-12",
+  "scenario": "Receipt Extraction Validation",
+  "situation": "Extracted receipts occasionally fail a business-rule check: the `total` field does not equal the sum of line items. You are implementing the retry loop for failed validations.",
+  "question": "According to the guide, what should the retry prompt include to maximize the chance of correction?",
+  "options": [
+   {
+    "key": "A",
+    "text": "The original receipt, the previous incorrect extraction, and the specific error — e.g., \"Field 'total' = 150, but sum(line_items) = 145. Re-check values.\""
+   },
+   {
+    "key": "B",
+    "text": "Only the validation error message, to keep the retry prompt short."
+   },
+   {
+    "key": "C",
+    "text": "A fresh prompt with no mention of the previous attempt, to avoid anchoring the model on its wrong answer."
+   },
+   {
+    "key": "D",
+    "text": "The Pydantic model definition and a request to rewrite the schema."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Retry-with-feedback is effective when the retry prompt carries the original document, the previous incorrect extraction, and the concrete validation error — the model can then re-check arithmetic against the source. An error message alone lacks the data to correct against; hiding the previous attempt discards useful diagnostic context; and the schema is not the problem — the extracted values are.",
+  "domain_id": 4
+ },
+ {
+  "id": "found-new-13",
+  "scenario": "Contract Field Extraction",
+  "situation": "A contract extraction pipeline requires a `termination_notice_period` field. Retries keep failing or producing inconsistent values. On inspection, you find that most of these contracts simply never state a notice period anywhere in the text.",
+  "question": "What is the most appropriate response?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Increase the retry count until the field is populated."
+   },
+   {
+    "key": "B",
+    "text": "Strengthen the prompt wording that the field is mandatory."
+   },
+   {
+    "key": "C",
+    "text": "Recognize that retry cannot help when the information is absent from the source: make the field nullable so the model can return null instead of fabricating a value."
+   },
+   {
+    "key": "D",
+    "text": "Switch the failing documents to synchronous API calls so the model has more time to locate the value."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "The guide is explicit that retries do not help when the information is absent from the source document (or lives in an external document not provided). The right fix is a schema-level one — a nullable field for data that may not exist — rather than more retries or pressure, which only increases fabrication risk. Synchronous versus batch execution changes nothing about what the contract contains.",
+  "domain_id": 4
+ },
+ {
+  "id": "found-new-14",
+  "scenario": "Invoice Reconciliation",
+  "situation": "Some financial documents state a total that does not match the sum of their listed line items. You want the extraction design to surface such discrepancies automatically rather than silently adopting one of the numbers.",
+  "question": "Which design pattern does the guide recommend?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Extract only the stated total, since the document's own summary is authoritative."
+   },
+   {
+    "key": "B",
+    "text": "Ask the model to choose whichever total looks more plausible and discard the other."
+   },
+   {
+    "key": "C",
+    "text": "Reject any document whose totals do not reconcile before running extraction."
+   },
+   {
+    "key": "D",
+    "text": "Extract both `stated_total` and `calculated_total` (computed from line items) plus a `conflict_detected` flag, so the discrepancy can be handled downstream."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "The guide's self-correction pattern extracts both the stated value and a computed value and uses `conflict_detected` to surface discrepancies so they can be handled explicitly. Trusting the stated total or having the model quietly pick one hides the mismatch, and rejecting non-reconciling documents discards data that is otherwise extractable.",
+  "domain_id": 4
+ },
+ {
+  "id": "found-new-15",
+  "scenario": "Large-Scale Document Extraction",
+  "situation": "You submit a batch of 100 documents through the Message Batches API, each request carrying a `custom_id`. When processing completes, 95 documents succeed and 5 fail with 'context limit exceeded.'",
+  "question": "What is the most efficient way to handle the failures?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Resubmit all 100 documents to guarantee uniform processing across the set."
+   },
+   {
+    "key": "B",
+    "text": "Use the `custom_id` values to identify the 5 failed documents, adjust the strategy for them (e.g., split long documents into chunks), and resubmit only those 5."
+   },
+   {
+    "key": "C",
+    "text": "Move the 5 failed documents to synchronous calls with multi-turn tool use."
+   },
+   {
+    "key": "D",
+    "text": "Mark the 5 documents as permanently unprocessable and exclude them from reporting."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "`custom_id` exists to correlate each result with its source document so that, on failure, you can change strategy (chunking long documents) and resubmit only the failed items — never re-processing successes. Resubmitting all 100 doubles cost, synchronous calls do not change a context-limit problem, and discarding the documents loses data unnecessarily.",
+  "domain_id": 4
+ },
+ {
+  "id": "found-new-16",
+  "scenario": "Nightly Compliance Reports",
+  "situation": "A compliance team requires batch-processed analysis results within 30 hours of document intake. The Message Batches API offers 50% savings but can take up to 24 hours, with no latency SLA.",
+  "question": "Which submission rule follows from these constraints?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Batches must be submitted no later than 24 hours before the deadline — with a 30-hour deadline, that leaves a submission window of about 6 hours after intake."
+   },
+   {
+    "key": "B",
+    "text": "Submit immediately after intake, then escalate to synchronous processing if the batch has not finished within 24 hours."
+   },
+   {
+    "key": "C",
+    "text": "Split documents into batches of exactly 4 documents each, which guarantees faster processing."
+   },
+   {
+    "key": "D",
+    "text": "The Batch API cannot meet this requirement under any submission schedule."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "The guide's SLA-planning math: with up to 24 hours of processing and a 30-hour deadline, the submission window is 30 − 24 = 6 hours, so batches must go in within 6 hours of intake. The guide's '4-hour windows' tip is about cadence when submitting frequently, not a batch size; escalating a submitted batch to synchronous is not a defined behavior; and the deadline is achievable with disciplined scheduling.",
+  "domain_id": 4
+ },
+ {
+  "id": "found-new-17",
+  "scenario": "Order Lookup Context Bloat",
+  "situation": "A support agent's `lookup_order` tool returns 40+ fields per call, but current tasks need only five: order ID, status, total, items, and return eligibility. Over long conversations, the context fills with unused fields and response quality degrades.",
+  "question": "Which fix is most effective?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Instruct the model in the prompt to ignore any fields it does not need."
+   },
+   {
+    "key": "B",
+    "text": "Raise the summarization threshold so the context lasts longer before compaction."
+   },
+   {
+    "key": "C",
+    "text": "Use a PostToolUse hook that trims the tool result down to the task-relevant fields before it enters context."
+   },
+   {
+    "key": "D",
+    "text": "Store all tool results in an external database and keep them out of context entirely."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "The guide recommends trimming verbose tool outputs with a PostToolUse hook that keeps only the relevant fields — deterministically conserving context and reducing noise. Telling the model to 'ignore' fields does not save a single token, since the data is still in context; delaying summarization only postpones the problem; and keeping results out of context entirely deprives the model of the data it needs.",
+  "domain_id": 5
+ },
+ {
+  "id": "found-new-18",
+  "scenario": "Long Refactoring Investigation",
+  "situation": "Halfway through a multi-hour codebase investigation, the agent's answers become unstable: instead of referring to the specific classes and call sites it discovered earlier, it starts describing what is 'typically done' in such codebases. Re-running discovery from scratch is expensive.",
+  "question": "Which technique does the guide recommend for preserving key findings across context degradation?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Restart the session from scratch whenever instability appears."
+   },
+   {
+    "key": "B",
+    "text": "Have the agent write key findings (classes, call sites, constraints) to a scratchpad file it can consult later instead of re-running discovery."
+   },
+   {
+    "key": "C",
+    "text": "Ask the model to repeat its earlier findings verbatim at the end of every turn to reinforce them."
+   },
+   {
+    "key": "D",
+    "text": "Switch to a model with a larger context window and re-paste the full transcript."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Scratchpad files persist key findings outside the conversation window; when context degrades — or in a new session — the agent consults the scratchpad instead of re-running discovery. Restarting throws away progress, verbatim repetition consumes context without stopping degradation, and a larger window only delays the same degradation.",
+  "domain_id": 5
+ },
+ {
+  "id": "found-new-19",
+  "scenario": "Overnight Research Pipeline",
+  "situation": "A multi-agent research pipeline (web search -> document analysis -> synthesis) runs overnight, but occasional crashes force a full restart, wasting hours of completed work. You want the coordinator to resume after a crash without redoing finished stages.",
+  "question": "Which design does the guide recommend?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Keep all state inside the conversation context so the coordinator naturally remembers progress."
+   },
+   {
+    "key": "B",
+    "text": "Have each agent export structured state (status, results, gaps) to a known location, and have the coordinator load a manifest on resume showing which stages are completed, in progress, or not started."
+   },
+   {
+    "key": "C",
+    "text": "Schedule a full pipeline re-run every 4 hours so crashes do not matter."
+   },
+   {
+    "key": "D",
+    "text": "Send a completion notification after each stage so an operator can restart the pipeline manually at the right point."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Structured state persistence — per-agent state files plus a coordinator manifest mapping stages to completed/in_progress/not_started — is the guide's crash-recovery design: the coordinator resumes exactly where things stopped. Conversation context does not survive a process crash, scheduled full re-runs waste completed work, and manual restarts defeat the automation.",
+  "domain_id": 5
+ },
+ {
+  "id": "found-new-20",
+  "scenario": "Multi-Source Market Report",
+  "situation": "Research subagents summarize web sources into prose paragraphs. The final report now contains statements like 'The AI music market is estimated at $3.2B' with no source, no year, and no way to verify the claim. You need attribution to survive the synthesis step.",
+  "question": "Which requirement does the guide prescribe?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Require subagents to output structured claim-to-source mappings: for each claim, the source URL, source name, publication date, and supporting quote."
+   },
+   {
+    "key": "B",
+    "text": "Append a bibliography of all URLs visited to the end of the report."
+   },
+   {
+    "key": "C",
+    "text": "Instruct the synthesis agent to re-derive the source for each claim from memory."
+   },
+   {
+    "key": "D",
+    "text": "Require subagents to highlight any sentence that contains a number."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Attribution is lost during summarization unless the claim-to-source link is preserved as structured data; the guide prescribes mappings carrying URL, source name, publication date, and quote, kept intact during aggregation. A flat bibliography does not link specific claims to specific sources, re-deriving sources from memory invites fabricated citations, and formatting highlights do not create attribution.",
+  "domain_id": 5
+ },
+ {
+  "id": "found-new-21",
+  "scenario": "Conflicting Market Share Figures",
+  "situation": "Two subagents report different values for the same metric: source A says 10%, source B says 15%. The initial synthesis flags this as a contradiction. On review, source A's report is dated 2023 and source B's is dated 2024.",
+  "question": "Which design change best prevents this class of misinterpretation?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Always prefer the larger value, since newer data tends to be more optimistic."
+   },
+   {
+    "key": "B",
+    "text": "Discard any pair of sources that disagree numerically."
+   },
+   {
+    "key": "C",
+    "text": "Average the two values and report 12.5% as a compromise."
+   },
+   {
+    "key": "D",
+    "text": "Require publication/collection dates in source outputs so temporal differences can be interpreted correctly — e.g., 10% in 2023 and 15% in 2024 likely reflects growth, not contradiction."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "The guide warns that without dates, temporal differences get misread as contradictions; including publication/collection dates lets synthesis correctly read 10% (2023) -> 15% (2024) as likely growth. Picking the larger value, averaging, or discarding disagreeing sources are arbitrary operations that destroy information instead of interpreting it.",
+  "domain_id": 5
+ },
+ {
+  "id": "found-new-22",
+  "scenario": "Angry Customer, No Explicit Request",
+  "situation": "A customer messages: 'This is outrageous, I'm very unhappy with the quality!' They have not asked to speak to a human. Your support agent must decide how to handle escalation.",
+  "question": "What is the appropriate escalation behavior according to the guide?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Escalate immediately — strong dissatisfaction is a reliable signal that the case is complex."
+   },
+   {
+    "key": "B",
+    "text": "Run sentiment analysis and escalate when the sentiment score crosses a negative threshold."
+   },
+   {
+    "key": "C",
+    "text": "Continue standard troubleshooting and ignore the emotional content entirely."
+   },
+   {
+    "key": "D",
+    "text": "Acknowledge the frustration, offer a concrete resolution such as a replacement or refund, and escalate only if the customer reiterates the desire to talk to a human."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "The guide's nuanced escalation pattern: acknowledge the emotion first, propose a concrete resolution, and escalate only if the customer reiterates wanting a human — a first expression of dissatisfaction is not a request for a manager. Sentiment is an unreliable escalation trigger, immediate escalation gives up cases the agent could resolve, and ignoring the emotion entirely misses the cue.",
+  "domain_id": 5
+ },
+ {
+  "id": "found-new-23",
+  "scenario": "Escalation Handoff",
+  "situation": "When your support agent escalates a case, the human operator does not see the conversation transcript — only what the agent hands over. Today, humans must re-ask customers for basic details, which frustrates them and slows resolution.",
+  "question": "Which handoff design does the guide prescribe?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Forward the full conversation transcript so nothing is lost."
+   },
+   {
+    "key": "B",
+    "text": "Send a one-line reason code so the human can triage quickly."
+   },
+   {
+    "key": "C",
+    "text": "Send a complete, self-contained structured summary: customer ID, issue summary, root cause, actions taken, relevant amounts, recommended action, and escalation reason."
+   },
+   {
+    "key": "D",
+    "text": "Ask the customer to restate their issue when the human joins."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Because the human operator has no access to the transcript, the guide prescribes a structured handoff that is complete and self-contained — customer ID, issue summary, root cause, actions taken, amounts, recommended action, and escalation reason. A reason code is too thin to act on, asking the customer to repeat themselves degrades the experience, and forwarding the transcript contradicts the stated constraint that the human sees only the summary.",
+  "domain_id": 5
+ },
+ {
+  "id": "found-new-24",
+  "scenario": "Extraction Accuracy Audit",
+  "situation": "An invoice extraction system reports 97% overall field accuracy, and stakeholders want to approve full automation. Before agreeing, you are asked to verify that reliability holds where it matters.",
+  "question": "According to the guide's guidance on confidence calibration and human oversight, what is the most important check?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Analyze accuracy by document type and by field using stratified sampling — aggregate accuracy can hide severe errors on specific segments, such as 40% errors on one document type."
+   },
+   {
+    "key": "B",
+    "text": "Approve automation — 97% aggregate accuracy is sufficient justification."
+   },
+   {
+    "key": "C",
+    "text": "Increase the model's temperature to produce more diverse outputs, then re-measure."
+   },
+   {
+    "key": "D",
+    "text": "Route all extractions to human review regardless of confidence to establish a baseline."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "The guide warns that aggregate metrics like 97% overall accuracy can mask poor performance on specific document types or fields (e.g., 40% errors for one type), and prescribes stratified sampling plus per-type and per-field analysis before automating, with low-confidence extractions routed to human review. Approving on the aggregate alone ignores hidden variance, temperature changes nothing about accuracy, and universal human review defeats the automation goal.",
+  "domain_id": 5
+ }
+]

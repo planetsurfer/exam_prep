@@ -1,0 +1,107 @@
+[
+ {
+  "domain_id": 1,
+  "domain": "Agent architecture and orchestration",
+  "weight": 27,
+  "key_points": [
+   "The agent loop is driven by stop_reason: continue when it is \"tool_use\" (execute the tool, append its result to history, call Claude again) and stop only on \"end_turn\"; never parse assistant text or use arbitrary iteration limits as the primary completion signal.",
+   "The API is stateless: send the full conversation history on every request, and return tool results as tool_result content blocks inside user-role messages (there is no separate \"tool\" role).",
+   "Multi-agent systems use a hub-and-spoke topology: the coordinator owns task decomposition, delegation, result aggregation, dynamic subagent selection, error handling, and all inter-agent communication (for observability and uniform error control).",
+   "Subagents have isolated context and do not inherit the coordinator's conversation history — every subagent prompt must explicitly include all required context (documents, prior search results, output format requirements).",
+   "Subagents are spawned via the Task tool (the coordinator's allowed_tools must include \"Task\"); issuing multiple Task calls in one coordinator response runs the subagents in parallel.",
+   "AgentDefinition configures an agent with name, description, system_prompt, and allowed_tools — allowed_tools enforces the principle of least privilege per agent.",
+   "Overly narrow coordinator decomposition is a key failure mode: all subagents can succeed while the aggregated result misses large parts of the request (e.g., only visual-art subtasks for \"creative industries\").",
+   "To prevent duplicated work, the coordinator should explicitly partition the research space (distinct subtopics or source types) before delegating, and write subagent prompts in terms of goals and quality criteria rather than step-by-step instructions.",
+   "When ordering is critical (e.g., identity verification before refunds), use programmatic enforcement — preconditions that block downstream calls until prior steps complete — because prompts are probabilistic while code gives deterministic guarantees.",
+   "Agent SDK hooks intercept the lifecycle: PostToolUse transforms tool results (normalize dates, trim fields) before the model sees them; interception hooks block policy-violating calls (e.g., refunds above $500) and redirect to escalation.",
+   "Choose fixed pipelines (prompt chaining) for predictable, repeatable tasks and dynamic adaptive decomposition for open-ended investigations where subtasks emerge from intermediate results.",
+   "Escalation handoffs must carry a complete, self-contained structured summary (customer ID, issue summary, actions taken, recommended action, escalation reason) because the human operator does not see the full transcript.",
+   "Session management: --resume <session-name> continues a named session (risk of stale tool results), fork_session branches shared context to compare approaches, and a fresh session with a short summary beats resuming degraded context.",
+   "Coordinators run iterative refinement loops: evaluate synthesized output against quality criteria and re-route or re-run subtasks until the criteria are met."
+  ]
+ },
+ {
+  "domain_id": 2,
+  "domain": "Tool design and MCP integration",
+  "weight": 18,
+  "key_points": [
+   "Tool descriptions are the primary mechanism the model uses to select tools; include what the tool does and returns, input formats with example values, edge cases, and when to use it versus similar alternatives.",
+   "Overlapping or near-identical descriptions cause misrouting; rename and re-describe tools to remove semantic overlap (e.g., analyze_content → extract_web_results described in terms of web search and URLs).",
+   "System prompt wording can create unintended tool associations (e.g., \"always verify the customer\" over-triggers get_customer); suspect prompt-level steering when tool descriptions are already clear.",
+   "tool_choice controls selection: {\"type\": \"auto\"} (default, model decides), {\"type\": \"any\"} (must call some tool — guarantees structured output), and {\"type\": \"tool\", \"name\": ...} (forces a specific tool to guarantee execution order).",
+   "Too many tools per agent reduces selection reliability (the guide contrasts ~4–5 role-relevant tools with 18); scope each agent to its role-relevant tools plus a limited set of cross-role utilities.",
+   "Replace general-purpose tools with constrained ones to make misuse impossible (e.g., fetch_url → load_document that validates URLs point to document formats) — least privilege enforced at the interface, not via instructions.",
+   "MCP tools report failure with isError: true; return structured error content (errorCategory transient/validation/permission, isRetryable, message, attempted query, partial results) instead of a generic \"Operation failed\".",
+   "Classify errors to drive recovery: transient (timeout, 503 — retry with exponential backoff), validation (fix input and retry), business/policy (not retryable — explain and offer alternatives), permission (escalate).",
+   "Distinguish access failures (a timeout requiring a retry decision) from valid empty results (\"0 results\" is a successful, informative query outcome); do local recovery (1–2 retries) for transient failures inside subagents and propagate only what they cannot resolve.",
+   "MCP defines three resource types — tools (actions), resources (readable context such as schemas, catalogs, documentation, which reduce exploratory tool calls), and prompts (templates); tools from all connected servers are discovered automatically and available at once.",
+   "MCP server scope: project .mcp.json at the repo root (version-controlled, team-shared, uses ${ENV_VAR} substitution so tokens are never committed) versus user-level ~/.claude.json for personal/experimental servers.",
+   "Prefer existing community MCP servers for standard integrations (GitHub, Jira, Slack); build custom servers only for unique, team-specific workflows.",
+   "Built-in tools: Glob finds files by name/pattern, Grep searches file contents, Read/Write handle whole files, Edit replaces via unique text match (fall back to Read + Write when the match is not unique), Bash runs shell commands; investigate incrementally (Grep entry points → Read → Grep usages).",
+   "Agents may prefer built-in tools (Read, Grep) over MCP tools with similar functionality; strengthen MCP tool descriptions by highlighting the unique data or capabilities built-ins cannot provide."
+  ]
+ },
+ {
+  "domain_id": 3,
+  "domain": "Claude Code configuration and workflows",
+  "weight": 20,
+  "key_points": [
+   "CLAUDE.md hierarchy: user-level ~/.claude/CLAUDE.md (personal, not in VCS), project-level .claude/CLAUDE.md or root CLAUDE.md (shared via VCS), and directory-level CLAUDE.md files; a new teammate missing instructions usually means they live in user-level files instead of project-level.",
+   "@path imports modularize CLAUDE.md (e.g., @./standards/coding-style.md): the @ sits immediately before the path, relative paths resolve against the file containing the import, and maximum import nesting depth is 5.",
+   ".claude/rules/ holds topical rule files; YAML frontmatter paths (e.g., paths: [\"src/api/**/*\"] or [\"**/*.test.tsx\"]) make a rule load only when Claude edits matching files, saving context and tokens.",
+   "Prefer path-glob rules for conventions spread across many directories (tests, migrations) and directory-level CLAUDE.md when conventions are tied to one directory.",
+   "Project slash commands live in .claude/commands/ (version-controlled, available to everyone who clones the repo); personal commands in ~/.claude/commands/; skills (.claude/skills/<name>/SKILL.md) are the current unified format — both create /name commands.",
+   "SKILL.md frontmatter: context: fork runs the skill in an isolated subagent so verbose output does not pollute the main session, allowed-tools restricts which tools the skill can use, and argument-hint prompts for missing arguments.",
+   "Personal skill variants go in ~/.claude/skills/ under a different name (e.g., /my-commit), because a same-named personal skill silently shadows the team skill and then misses team updates.",
+   "Skills are for on-demand workflows (review, migration, analysis); CLAUDE.md is for always-loaded standards — keep universal conventions in CLAUDE.md and task/workflow-specific guidance in skills.",
+   "Planning mode explores read-only (Read, Grep, Glob) and produces a user-approved plan before any change; use it for large multi-file changes, multiple viable approaches, architectural decisions, unfamiliar codebases, and 45+ file migrations; use direct execution for single-file, unambiguous fixes.",
+   "The Explore subagent isolates verbose codebase discovery and returns only a summary, protecting the main context window in multi-phase tasks.",
+   "/compact summarizes history to free the context window (exact numbers, dates, and specific details can be lost); /memory opens CLAUDE.md so notes and preferences persist across sessions.",
+   "In CI/CD, claude -p (--print) runs non-interactively (without it the job hangs waiting for input); --output-format json plus --json-schema yields parseable, schema-conformant findings for automated inline PR comments.",
+   "Session context isolation: the session that generated code is a weaker reviewer of it — use an independent instance; when re-reviewing after new commits, include prior findings and instruct Claude to report only new or unresolved issues, and include existing test files when generating tests to avoid duplicates.",
+   "Iterate with 2–3 concrete input/output examples (more effective than prose), test-driven iteration (write tests first), and the \"interview\" pattern where Claude asks clarifying questions before implementing."
+  ]
+ },
+ {
+  "domain_id": 4,
+  "domain": "Prompt engineering and structured output",
+  "weight": 20,
+  "key_points": [
+   "Explicit criteria beat vague instructions: define exactly when to flag (e.g., a comment is wrong only when it contradicts the code's actual behavior) and what NOT to flag, with severity levels anchored by concrete examples (CRITICAL/HIGH/MEDIUM/LOW).",
+   "When noisy categories erode developer trust, temporarily disable high-false-positive categories (style, naming, documentation) and keep high-precision ones (security, correctness) while prompts are improved, then re-enable.",
+   "Few-shot prompting (2–4 examples) is the most reliable way to get consistent formatting and decisions: target ambiguous scenarios with rationale, show the exact output structure (location, issue, severity, fix), and contrast acceptable vs problematic cases.",
+   "tool_use with a JSON schema is the most reliable structured-output mechanism: it guarantees syntactically valid JSON and required fields, but does not guarantee semantic correctness (values can still be wrong).",
+   "Schema design: mark fields required only when the information is always present, use nullable types ([\"string\", \"null\"]) so the model returns null instead of fabricating, and add \"other\"/\"unclear\" enum values with a detail field for extensibility.",
+   "Retry-with-feedback: on validation failure re-prompt with the original document, the previous extraction, and the specific error (e.g., \"total = 150 but sum(line_items) = 145\"); retry cannot help when the information is simply absent from the source.",
+   "Self-correction pattern: extract both stated_total and calculated_total and set a conflict_detected flag when they disagree, so discrepancies can be handled downstream.",
+   "Pydantic provides structural validation (types, requiredness, enums) plus custom semantic validators (sums reconcile, start < end), generates JSON Schema for tool_use as a single source of truth, and drives validate–retry loops.",
+   "Message Batches API: 50% cost savings, up to a 24-hour processing window with no latency SLA, and no multi-turn tool calling within a request; custom_id correlates results and lets you re-submit only failed documents.",
+   "Use synchronous calls for blocking or interactive work (pre-merge checks, live review); use batches for overnight, weekly, or bulk workloads, and plan submission windows against the 24-hour bound (a 30-hour deadline leaves a 6-hour submission window).",
+   "Self-review is limited because the generating session retains its reasoning and rationalizes its decisions — a second independent review instance without the generation context catches more subtle issues.",
+   "For large PRs (10+ files), single-pass review dilutes attention (shallow comments, missed bugs, inconsistent flags); restructure into per-file passes plus a separate cross-file integration pass — a bigger context window does not fix attention quality.",
+   "Add normalization rules to extraction prompts (dates as ISO 8601, currency as amount + code, percentages as decimals) so syntactically valid output stays semantically consistent.",
+   "Including rationale and a confidence estimate directly in each finding speeds developer triage without suppressing any findings."
+  ]
+ },
+ {
+  "domain_id": 5,
+  "domain": "Context management and reliability",
+  "weight": 15,
+  "key_points": [
+   "The context window holds the system prompt, full message history, tool definitions, and tool results; because the API is stateless, every request resends the entire history, so long conversations directly raise cost and latency.",
+   "Lost-in-the-middle: models reliably process the beginning and end of long inputs but miss the middle — put key findings at the top, action items at the end, and use explicit section headings to aid navigation.",
+   "Progressive summarization blurs numbers, percentages, and dates into vague language; extract transactional facts into a persistent \"case facts\" block included in every prompt outside the summarized history.",
+   "Trim verbose tool results to the fields the task needs (e.g., a PostToolUse hook keeping 5 of 40+ fields) and require subagents to return structured results rather than raw data dumps.",
+   "Valid escalation triggers: an explicit request for a human (escalate immediately), policy gaps or silence, inability to make progress after reasonable attempts, and financial operations above a threshold (enforce via hook); sentiment analysis and model self-rated confidence are unreliable triggers.",
+   "For frustrated customers, acknowledge the emotion, offer a concrete resolution, and escalate only if they reiterate wanting a human; when a search returns multiple matches, ask for an additional identifier rather than guessing.",
+   "Propagate structured error context from subagents (failure type, attempted query, partial results, alternative approaches, coverage impact) so the coordinator can decide to retry, reuse partial results, reassign, or annotate a gap.",
+   "Error anti-patterns to avoid: generic statuses (\"search unavailable\"), silent suppression (empty result marked as success), aborting the whole workflow on a single failure, and infinite retries inside a subagent.",
+   "Degrade gracefully: continue synthesis with partial results and annotate coverage per section (FULL/PARTIAL COVERAGE with the reason) so downstream consumers know exactly where gaps exist.",
+   "For large-codebase investigations: delegate verbose discovery to subagents, persist key findings in a scratchpad file, use /compact, and export structured agent state (per-agent files plus a manifest) for crash recovery and resume.",
+   "Calibrate human oversight with field-level confidence scores tuned on labeled validation sets: route high-confidence, stable-accuracy extractions to automation and low-confidence or ambiguous-source extractions to human review.",
+   "Use stratified random sampling of high-confidence extractions because an aggregate 97% accuracy can hide 40% errors on a specific document type; measure accuracy by document type and field, not only overall.",
+   "Preserve provenance through summarization with claim → source mappings (URL, source name, publication date, quote, confidence); keep conflicting values side by side with conflict_detected instead of arbitrarily picking one.",
+   "Include publication/collection dates so temporal differences are not misread as contradictions, and when user input is ambiguous or self-contradictory, surface the conflict and ask rather than assume."
+  ]
+ }
+]

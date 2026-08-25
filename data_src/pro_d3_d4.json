@@ -1,0 +1,368 @@
+[
+  {
+    "id": "pro-3.1",
+    "domain": "Integration",
+    "domain_id": 3,
+    "weight": 19,
+    "type": "single",
+    "text": "An enterprise is connecting Claude to twelve internal systems (CRM, ticketing, HR, inventory, and others). Different teams own each system, tools will be added and retired frequently, and multiple AI applications across the company will need to reuse the same connections. Which integration approach best fits these requirements?",
+    "options": [
+      {"key": "A", "text": "Hard-code each system's REST API directly into each application's tool definitions"},
+      {"key": "B", "text": "Build one custom middleware service that wraps all twelve systems behind a single endpoint"},
+      {"key": "C", "text": "Expose each system via MCP servers that any application can connect to"},
+      {"key": "D", "text": "Grant Claude direct database access to each system to avoid API maintenance"}
+    ],
+    "answer": ["C"],
+    "explanation": "MCP is designed for exactly this shape: many systems, many consuming applications, decentralised ownership, and frequent tool churn — each team maintains its server once and every application reuses it. Why not the others: A multiplies maintenance by application count; B creates a bottleneck team and single point of failure; D bypasses business logic and access control."
+  },
+  {
+    "id": "pro-3.2",
+    "domain": "Integration",
+    "domain_id": 3,
+    "weight": 19,
+    "type": "single",
+    "text": "An agent has grown to 45 registered tools spanning six business domains. Tool-selection accuracy has dropped, latency has increased, and analysis shows a third of the tools have never been invoked in production. What should the architect do first?",
+    "options": [
+      {"key": "A", "text": "Write longer descriptions for all 45 tools so the model can distinguish them more reliably"},
+      {"key": "B", "text": "Upgrade to a more capable model that can handle a larger tool catalogue"},
+      {"key": "C", "text": "Require the model to list all 45 tools and justify its choice before every invocation"},
+      {"key": "D", "text": "Audit and remove unused or overlapping tools, and consider progressive discovery so only relevant tools are presented per request"}
+    ],
+    "answer": ["D"],
+    "explanation": "This is capability bloat. Removing dead and overlapping tools directly restores selection accuracy, and progressive discovery keeps the per-request tool surface small as the catalogue grows. Why not the others: A adds context without reducing confusion; B treats the symptom at higher cost; C adds latency and tokens to every call."
+  },
+  {
+    "id": "pro-3.3",
+    "domain": "Integration",
+    "domain_id": 3,
+    "weight": 19,
+    "type": "single",
+    "text": "A Claude-based assistant queries an HR system on behalf of employees. It authenticates using a single service account with organisation-wide read access, and the system prompt instructs the model to only return data belonging to the requesting employee. A security review flags this design. What is the core problem?",
+    "options": [
+      {"key": "A", "text": "Authorisation is being enforced by prompt instructions rather than by the access-control layer, so a prompt failure or injection could expose any employee's data"},
+      {"key": "B", "text": "Service accounts cannot be used with AI systems under most compliance frameworks"},
+      {"key": "C", "text": "The service account should have write access as well so the audit log is complete"},
+      {"key": "D", "text": "The model should authenticate to the HR system directly using each employee's password"}
+    ],
+    "answer": ["A"],
+    "explanation": "The prompt is doing authorisation's job. Instructions are not a security boundary — access control must be enforced by the system layer (per-user scoped credentials or pass-through auth) so the model can't return what it can't retrieve. Why not the others: B is not a real compliance rule; C expands the blast radius; D is a credential-handling anti-pattern."
+  },
+  {
+    "id": "pro-3.4",
+    "domain": "Integration",
+    "domain_id": 3,
+    "weight": 19,
+    "type": "single",
+    "text": "A RAG system over commercial contracts uses fixed 300-token chunks. Retrieval frequently returns clause fragments whose meaning depends on definitions and cross-references elsewhere in the document, and answer quality suffers. Which change most directly addresses this?",
+    "options": [
+      {"key": "A", "text": "Reduce chunk size to 100 tokens so retrieval is more precise"},
+      {"key": "B", "text": "Adopt structure-aware chunking aligned to clauses and sections, with metadata linking definitions and cross-references"},
+      {"key": "C", "text": "Increase the number of retrieved chunks from 5 to 50 so the missing context is probably included"},
+      {"key": "D", "text": "Replace retrieval with a keyword index over clause headings only"}
+    ],
+    "answer": ["B"],
+    "explanation": "The failure is structural: fixed-size chunks sever clauses from the definitions and cross-references that give them meaning. Chunking aligned to document structure, with linkage metadata, preserves interpretive context. Why not the others: A makes fragmentation worse; C floods the context hoping to get lucky; D discards the semantic retrieval that works for everything else."
+  },
+  {
+    "id": "pro-3.5",
+    "domain": "Integration",
+    "domain_id": 3,
+    "weight": 19,
+    "type": "single",
+    "text": "A parts-lookup assistant uses pure semantic (vector) retrieval. Users searching by exact part numbers such as “KX-2481-B” often receive results for similar but incorrect parts, while natural-language queries work well. Which retrieval strategy best resolves this?",
+    "options": [
+      {"key": "A", "text": "Pure keyword search across the whole catalogue, replacing semantic retrieval entirely"},
+      {"key": "B", "text": "A larger embedding model so part numbers embed more distinctly"},
+      {"key": "C", "text": "Instructing users to describe parts in natural language instead of using part numbers"},
+      {"key": "D", "text": "Hybrid retrieval combining keyword/exact matching with semantic search, weighted by query type"}
+    ],
+    "answer": ["D"],
+    "explanation": "Exact identifiers are where lexical matching wins and embeddings blur; natural language is where semantic search wins. Hybrid retrieval matches the strategy to the query shape. Why not the others: A breaks the natural-language queries that currently work; B marginally improves a fundamentally lexical problem; C pushes the system's failure onto users."
+  },
+  {
+    "id": "pro-3.6",
+    "domain": "Integration",
+    "domain_id": 3,
+    "weight": 19,
+    "type": "single",
+    "text": "Adding a re-ranking stage to a support assistant's retrieval pipeline improves answer accuracy from 86% to 93% but adds 500 ms of latency. The assistant's contractual SLA is a 3-second response time, and current p95 latency is 1.6 seconds. How should the architect reason about this trade-off?",
+    "options": [
+      {"key": "A", "text": "Adopt re-ranking: the accuracy gain is material and the added latency still leaves comfortable headroom within the SLA"},
+      {"key": "B", "text": "Reject re-ranking: latency increases should never be accepted in a customer-facing system"},
+      {"key": "C", "text": "Adopt re-ranking only for the small subset of queries where the SLA does not apply"},
+      {"key": "D", "text": "Defer the decision until the SLA is renegotiated to allow for slower responses"}
+    ],
+    "answer": ["A"],
+    "explanation": "The decision framework is: quantify both sides against the SLA. A 7-point accuracy gain for 500 ms, landing at ~2.1 s against a 3 s SLA, leaves clear headroom — adopt and monitor. Why not the others: B is dogma, not analysis; C fragments behaviour arbitrarily; D defers a decision the data already supports."
+  },
+  {
+    "id": "pro-3.7",
+    "domain": "Integration",
+    "domain_id": 3,
+    "weight": 19,
+    "type": "single",
+    "text": "A platform runs tens of thousands of agent sessions daily. Engineers currently log every full prompt, response, and tool payload, which is costly and still makes failures hard to find. Which observability strategy is more appropriate at this scale?",
+    "options": [
+      {"key": "A", "text": "Disable logging in production and reproduce any reported failure in a staging environment"},
+      {"key": "B", "text": "Log only the final response of each session, discarding intermediate steps"},
+      {"key": "C", "text": "Structured traces with correlation IDs and key metrics for every session, with full payload capture sampled and triggered on error conditions"},
+      {"key": "D", "text": "Rely on user complaints as the primary failure-detection mechanism"}
+    ],
+    "answer": ["C"],
+    "explanation": "At scale, observability means structured traces and metrics on everything, with expensive full-payload capture applied selectively — sampled, and triggered on errors — so failures are findable without logging everything. Why not the others: A loses the production context that caused the failure; B discards the intermediate steps where agents fail; D is lagging and reputationally costly."
+  },
+  {
+    "id": "pro-3.8",
+    "domain": "Integration",
+    "domain_id": 3,
+    "weight": 19,
+    "type": "single",
+    "text": "A procurement agent operated by one company must negotiate delivery schedules with a supplier's independently operated scheduling agent. Neither organisation will expose internal tools or systems directly to the other. Which connection approach fits this requirement best?",
+    "options": [
+      {"key": "A", "text": "Registering the supplier's internal tools directly in the procurement agent's tool catalogue"},
+      {"key": "B", "text": "Agent-to-agent communication across an agreed protocol boundary, with each agent mediating access to its own organisation's systems"},
+      {"key": "C", "text": "Giving each agent read access to the other organisation's scheduling database"},
+      {"key": "D", "text": "Replacing both agents with a single shared agent operated by a third party"}
+    ],
+    "answer": ["B"],
+    "explanation": "Cross-organisation coordination without exposing internals is the defining use case for agent-to-agent communication: each agent is the boundary that mediates its own systems. Why not the others: A exposes exactly what neither party will expose; C exposes internal systems across the trust boundary; D requires an operating model neither company asked for."
+  },
+  {
+    "id": "pro-3.9",
+    "domain": "Integration",
+    "domain_id": 3,
+    "weight": 19,
+    "type": "multi",
+    "select": 2,
+    "text": "After a nightly documentation refresh, a RAG assistant intermittently answers from superseded content. Which TWO measures most directly address this?",
+    "options": [
+      {"key": "A", "text": "A larger context window so more documents can be retrieved per query"},
+      {"key": "B", "text": "A weekly manual spot-check of ten random answers"},
+      {"key": "C", "text": "An automated re-indexing pipeline that validates completeness and embedding consistency after every content refresh"},
+      {"key": "D", "text": "Document versioning metadata in the index, with retrieval filtering out superseded versions"},
+      {"key": "E", "text": "Lowering the temperature so the model relies less on retrieved content"}
+    ],
+    "answer": ["C", "D"],
+    "explanation": "A validated re-index pipeline stops stale embeddings entering the index, and version-aware retrieval stops superseded chunks being served even when they linger. Why not the others: A retrieves more of the same stale content; B is too slow and sparse to catch nightly issues; E doesn't change what's retrieved."
+  },
+  {
+    "id": "pro-3.10",
+    "domain": "Integration",
+    "domain_id": 3,
+    "weight": 19,
+    "type": "multi",
+    "select": 2,
+    "text": "An agent frequently invokes the wrong tool when several tools have related purposes. Which TWO changes most directly reduce tool-selection errors?",
+    "options": [
+      {"key": "A", "text": "Rewrite tool descriptions so each tool's purpose, inputs, and boundaries are explicit and non-overlapping"},
+      {"key": "B", "text": "Add more granular tools so every edge case has its own dedicated tool"},
+      {"key": "C", "text": "Instruct the model to always prefer the first tool in the list when uncertain"},
+      {"key": "D", "text": "Route all tool calls through a single generic 'execute' tool that takes free-text commands"},
+      {"key": "E", "text": "Consolidate or remove tools with overlapping functionality"}
+    ],
+    "answer": ["A", "E"],
+    "explanation": "Selection errors between related tools come from overlap and ambiguity: make each tool's boundary explicit, and eliminate the overlaps outright. Why not the others: B increases the confusion surface; C institutionalises wrong choices; D discards typed interfaces, making errors harder to catch."
+  },
+  {
+    "id": "pro-3.11",
+    "domain": "Integration",
+    "domain_id": 3,
+    "weight": 19,
+    "type": "multi",
+    "select": 2,
+    "text": "An architect is weighing progressive discovery (loading tools and context on demand) against a monolithic strategy (everything in context up front). Which TWO situations most strongly favour progressive discovery?",
+    "options": [
+      {"key": "A", "text": "The solution uses three tools, all of which are needed on every request"},
+      {"key": "B", "text": "The solution has a large catalogue of tools and reference material, of which only a small subset is relevant to any single request"},
+      {"key": "C", "text": "Requests must complete in a single model invocation with no intermediate steps"},
+      {"key": "D", "text": "The context budget is constrained and stuffing everything up front degrades response quality"},
+      {"key": "E", "text": "The reference material never changes and fits comfortably in the context window"}
+    ],
+    "answer": ["B", "D"],
+    "explanation": "Progressive discovery pays off when only a small slice of a large catalogue is relevant per request, and when up-front context stuffing is degrading quality or blowing the budget. Why not the others: A describes a case where monolithic context is simpler and fine; C rules out the intermediate steps discovery requires; E describes a case where monolithic context is fine."
+  },
+  {
+    "id": "pro-3.12",
+    "domain": "Integration",
+    "domain_id": 3,
+    "weight": 19,
+    "type": "matching",
+    "text": "For each integration need, identify the most suitable connection mechanism. Choose from: MCP server, direct API integration, or agent-to-agent protocol.",
+    "options": ["MCP server", "direct API integration", "agent-to-agent protocol"],
+    "items": [
+      "Multiple AI applications across the company need standardised, reusable access to the internal ticketing system.",
+      "A deterministic nightly batch job needs to push records into a data warehouse with no model involvement in the transfer itself.",
+      "Two autonomous agents owned by different companies must coordinate logistics without exposing internal systems to each other.",
+      "A new internal knowledge base should be discoverable and usable by any current or future agent in the organisation.",
+      "An existing microservice needs to call the model once to classify a document within its own tightly controlled pipeline."
+    ],
+    "answer": ["MCP server", "direct API integration", "agent-to-agent protocol", "MCP server", "direct API integration"],
+    "explanation": "Items 1 and 4 need standardised, reusable, discoverable access for many present and future consumers — MCP. Items 2 and 5 are deterministic, tightly scoped calls inside owned pipelines — direct integration, with no discovery layer needed. Item 3 crosses an organisational trust boundary between autonomous agents — agent-to-agent."
+  },
+  {
+    "id": "pro-4.1",
+    "domain": "Evaluation, Testing & Optimization",
+    "domain_id": 4,
+    "weight": 16,
+    "type": "single",
+    "text": "A steering committee asks whether a new contract-review assistant is “good enough to launch.” The team has anecdotes from pilot users but no formal measures. What should the architect establish first?",
+    "options": [
+      {"key": "A", "text": "A general benchmark score for the underlying model, published by a third party"},
+      {"key": "B", "text": "A count of pilot users who described the assistant as helpful"},
+      {"key": "C", "text": "A comparison of the assistant's token cost against the incumbent manual process"},
+      {"key": "D", "text": "Task-specific evaluation metrics tied to business outcomes (e.g. clause-extraction accuracy, review-time reduction, escalation rate) with agreed launch thresholds"}
+    ],
+    "answer": ["D"],
+    "explanation": "“Good enough” only means something against defined, task-specific metrics with agreed thresholds tied to the business outcome. That definition must precede the launch decision. Why not the others: A measures the model, not the solution; B is anecdote; C measures cost, not quality."
+  },
+  {
+    "id": "pro-4.2",
+    "domain": "Evaluation, Testing & Optimization",
+    "domain_id": 4,
+    "weight": 16,
+    "type": "single",
+    "text": "A team needs an evaluation dataset for a customer-support assistant before launch. Which composition provides the most trustworthy signal?",
+    "options": [
+      {"key": "A", "text": "One thousand synthetic questions generated by a model from the product documentation"},
+      {"key": "B", "text": "Anonymised real queries sampled from production-like channels, augmented with deliberately constructed edge cases and failure-prone scenarios"},
+      {"key": "C", "text": "The examples already used in the system prompt, since the assistant must at minimum handle those"},
+      {"key": "D", "text": "Questions written by the engineers who built the assistant, since they know it best"}
+    ],
+    "answer": ["B"],
+    "explanation": "Real queries capture the true input distribution; constructed edge cases probe where it breaks. Together they test both the common path and the failure surface. Why not the others: A inherits the documentation's blind spots; C only proves memorisation of the prompt; D tests the builders' assumptions with the builders' assumptions."
+  },
+  {
+    "id": "pro-4.3",
+    "domain": "Evaluation, Testing & Optimization",
+    "domain_id": 4,
+    "weight": 16,
+    "type": "single",
+    "text": "A marketing-content assistant must be evaluated for tone and brand alignment across thousands of outputs per week. Human review of every output is infeasible. Which evaluation methodology is most appropriate?",
+    "options": [
+      {"key": "A", "text": "An LLM-as-judge rubric scored against brand guidelines, periodically calibrated against a sample of human expert ratings"},
+      {"key": "B", "text": "Exact string matching of outputs against a library of approved copy"},
+      {"key": "C", "text": "Full human review of every output, accepting the throughput cost"},
+      {"key": "D", "text": "Skipping tone evaluation, since it is subjective and cannot be measured"}
+    ],
+    "answer": ["A"],
+    "explanation": "Subjective quality at scale calls for mixed methodology: an LLM judge applies the rubric to every output, and periodic human calibration keeps the judge honest. Why not the others: B can't score novel copy; C doesn't scale; D abandons a measurable requirement."
+  },
+  {
+    "id": "pro-4.4",
+    "domain": "Evaluation, Testing & Optimization",
+    "domain_id": 4,
+    "weight": 16,
+    "type": "single",
+    "text": "A revised prompt outperforms the current one on the offline evaluation suite by 6 points. The team wants confidence before fully replacing the production prompt. What is the most appropriate next step?",
+    "options": [
+      {"key": "A", "text": "Deploy the new prompt to all traffic immediately, since offline evaluation has already validated it"},
+      {"key": "B", "text": "Re-run the offline suite several more times to increase statistical confidence"},
+      {"key": "C", "text": "Run a controlled A/B test in production on a fraction of traffic, monitoring quality and guardrail metrics before ramping up"},
+      {"key": "D", "text": "Ask three senior stakeholders to compare sample outputs and approve the change"}
+    ],
+    "answer": ["C"],
+    "explanation": "Offline gains don't always transfer to the production distribution. A limited A/B test with quality and guardrail monitoring converts offline promise into production evidence at bounded risk. Why not the others: A skips the risk control; B re-measures the same distribution; D is opinion sampling, not evaluation."
+  },
+  {
+    "id": "pro-4.5",
+    "domain": "Evaluation, Testing & Optimization",
+    "domain_id": 4,
+    "weight": 16,
+    "type": "single",
+    "text": "Leadership asks for a 40% reduction in a solution's inference costs. The team's first proposal is to switch every workload to the smallest model. What should the architect do before accepting that proposal?",
+    "options": [
+      {"key": "A", "text": "Approve the switch, since model choice is the only meaningful cost lever"},
+      {"key": "B", "text": "Analyse token usage and cost per workload from production traces, then target the dominant cost drivers (e.g. caching, context trimming, selective model downsizing) with evaluation of quality impact"},
+      {"key": "C", "text": "Reject any cost-reduction effort on the grounds that quality always suffers"},
+      {"key": "D", "text": "Reduce the maximum output tokens across all workloads by 40%"}
+    ],
+    "answer": ["B"],
+    "explanation": "Optimise from evidence: trace-level cost analysis reveals whether the spend is in context size, caching misses, output length, or model choice — then apply the levers that target the dominant driver, with quality evaluated at each step. Why not the others: A is one lever applied blindly; C refuses the mandate; D truncates outputs regardless of consequence."
+  },
+  {
+    "id": "pro-4.6",
+    "domain": "Evaluation, Testing & Optimization",
+    "domain_id": 4,
+    "weight": 16,
+    "type": "single",
+    "text": "A team plans to move production workloads to a newly released model version. Offline spot checks look fine. Which rollout practice best protects production quality?",
+    "options": [
+      {"key": "A", "text": "Switch all traffic at once, since the new version is strictly more capable"},
+      {"key": "B", "text": "Delay adoption for six months until other companies have validated the version"},
+      {"key": "C", "text": "Adopt the new version only for new customers so existing customers see no change"},
+      {"key": "D", "text": "Run the full evaluation suite against the new version, then roll out gradually (e.g. canary traffic) with regression monitoring before full cutover"}
+    ],
+    "answer": ["D"],
+    "explanation": "Model version changes are regression risks. The full suite catches task-level regressions spot checks miss, and canary rollout bounds the blast radius of anything the suite didn't. Why not the others: A assumes “newer” means “better on your tasks”; B forfeits improvements without adding safety; C splits the fleet without protecting either half."
+  },
+  {
+    "id": "pro-4.7",
+    "domain": "Evaluation, Testing & Optimization",
+    "domain_id": 4,
+    "weight": 16,
+    "type": "single",
+    "text": "An architect wants early warning of quality degradation in a production RAG assistant, ideally before users notice. Which signal is the most useful leading indicator?",
+    "options": [
+      {"key": "A", "text": "An increase in formal complaints submitted through the support portal"},
+      {"key": "B", "text": "The monthly invoice for inference spend"},
+      {"key": "C", "text": "A decline in retrieval relevance scores and a rise in “no grounded answer found” rates in the pipeline's telemetry"},
+      {"key": "D", "text": "A drop in the number of daily active users measured quarter-on-quarter"}
+    ],
+    "answer": ["C"],
+    "explanation": "Retrieval relevance and grounding rates are pipeline-internal signals that move before user-visible quality does — the definition of a leading indicator. Why not the others: A is lagging — damage already done; B is cost, not quality; D is lagging and far too coarse."
+  },
+  {
+    "id": "pro-4.8",
+    "domain": "Evaluation, Testing & Optimization",
+    "domain_id": 4,
+    "weight": 16,
+    "type": "multi",
+    "select": 2,
+    "text": "A team is designing the pre-production evaluation framework for an assistant that will operate in a regulated domain. Which TWO components are most important to include?",
+    "options": [
+      {"key": "A", "text": "A live demonstration to the executive team using hand-picked examples"},
+      {"key": "B", "text": "A golden dataset labelled by domain experts, covering both typical and high-risk scenarios"},
+      {"key": "C", "text": "Adversarial test cases probing safety boundaries, prompt injection, and policy-violating requests"},
+      {"key": "D", "text": "A benchmark comparing the model's general knowledge against competitor models"},
+      {"key": "E", "text": "A user-satisfaction survey administered after the system has launched"}
+    ],
+    "answer": ["B", "C"],
+    "explanation": "Regulated domains demand both sides: expert-labelled golden data proving competence on typical and high-risk cases, and adversarial cases proving the boundaries hold under attack. Why not the others: A is theatre on curated examples; D measures the wrong thing; E arrives after the risk has shipped."
+  },
+  {
+    "id": "pro-4.9",
+    "domain": "Evaluation, Testing & Optimization",
+    "domain_id": 4,
+    "weight": 16,
+    "type": "multi",
+    "select": 2,
+    "text": "A production assistant's quality has degraded intermittently over two weeks. Latency, model version, and prompts are unchanged. Which TWO data sources are most useful for diagnosing the cause?",
+    "options": [
+      {"key": "A", "text": "End-to-end traces of affected sessions, including retrieved context and tool inputs/outputs"},
+      {"key": "B", "text": "The total number of requests served per day"},
+      {"key": "C", "text": "The billing dashboard showing spend by model"},
+      {"key": "D", "text": "Analysis of the input distribution for drift (new query types, formats, or languages the system was not designed for)"},
+      {"key": "E", "text": "Uptime statistics for the API endpoint"}
+    ],
+    "answer": ["A", "D"],
+    "explanation": "With code, model, and prompts unchanged, the cause is almost certainly in what's flowing through: traces show what the system actually did in failing sessions, and drift analysis shows whether the inputs have changed under it. Why not the others: B is volume — it doesn't explain a quality change; C is spend, not quality; E is availability, not quality."
+  },
+  {
+    "id": "pro-4.10",
+    "domain": "Evaluation, Testing & Optimization",
+    "domain_id": 4,
+    "weight": 16,
+    "type": "matching",
+    "text": "For each of the following scenarios, identify the system issue present. Choose from: prompt failure, hallucination, or model mismatch.",
+    "options": ["prompt failure", "hallucination", "model mismatch"],
+    "items": [
+      "A summarisation system using a small, fast model produces accurate summaries of short emails but consistently loses key details when given 40-page contracts.",
+      "An assistant instructed to “respond concisely” returns three-paragraph answers because the system prompt also contains conflicting instructions to “explain your reasoning in detail.”",
+      "A product Q&A bot confidently cites a warranty clause that does not exist anywhere in the provided documentation.",
+      "A coding assistant powered by a general-purpose model performs poorly on a specialised task requiring deep legal reasoning, despite well-structured prompts.",
+      "A customer service agent invents a tracking number when the lookup tool returns no results, rather than saying the shipment was not found."
+    ],
+    "answer": ["model mismatch", "prompt failure", "hallucination", "model mismatch", "hallucination"],
+    "explanation": "Items 1 and 4 are capability gaps between the chosen model and the task — mismatch. Item 2 is conflicting instructions — the prompt is the defect. Items 3 and 5 are confident fabrications ungrounded in source data or tool results — hallucination."
+  }
+]

@@ -1,0 +1,2086 @@
+[
+ {
+  "id": "ccarp-1",
+  "domain_id": 1,
+  "type": "single",
+  "text": "A logistics company processes 40,000 inbound shipping documents per day. Every document follows the same handling sequence: classify the document type, extract twelve known fields, and validate the result against an ERP record. Finance requires predictable per-document cost for chargeback. Which architectural pattern is the best fit?",
+  "options": [
+   {
+    "key": "A",
+    "text": "A fixed workflow that chains a classification step, an extraction step, and a validation step."
+   },
+   {
+    "key": "B",
+    "text": "A multi-agent system in which a supervisor agent delegates to specialist classification, extraction, and validation agents."
+   },
+   {
+    "key": "C",
+    "text": "A single autonomous agent given classification, extraction, and ERP lookup tools, allowed to determine its own sequence per document."
+   },
+   {
+    "key": "D",
+    "text": "An augmented LLM call that loads all 40,000 documents into context and returns a consolidated result."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. The path is known in advance and identical for every input; when steps and order can be enumerated up front, a deterministic workflow is right — each step is independently tested, retried and cached, token cost is bounded and predictable (exactly what Finance asked). B adds an orchestration layer to decide a fixed sequence — you pay supervisor tokens on all 40,000 docs daily for nothing; multi-agent earns its overhead only when subtasks are genuinely independent/parallel and need different context. C contradicts predictable cost (may loop/re-invoke) and makes failures hard to diagnose. D misunderstands the context window: it is working memory for one request, not a batch mechanism, and destroys per-doc traceability. Blueprint: select appropriate architectural patterns (workflow, agentic, augmented LLM).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-2",
+  "domain_id": 1,
+  "type": "multi",
+  "text": "An architect is choosing between a deterministic workflow and an agentic architecture for a new system. Select TWO conditions that most strongly favor the agentic design.",
+  "options": [
+   {
+    "key": "A",
+    "text": "The number of steps and their order vary by input and cannot be enumerated at design time."
+   },
+   {
+    "key": "B",
+    "text": "Per-request cost must be identical across all requests to support departmental chargeback."
+   },
+   {
+    "key": "C",
+    "text": "The system should recover from a failed approach by selecting a different tool and retrying."
+   },
+   {
+    "key": "D",
+    "text": "The system must satisfy a hard 300 ms p99 latency budget."
+   },
+   {
+    "key": "E",
+    "text": "The task is a single classification against a fixed, closed label set."
+   }
+  ],
+  "answer": [
+   "A",
+   "C"
+  ],
+  "explanation": "Correct: A and C. Agentic architectures exist to handle an unknown path (A) and adaptive recovery (C) — a control loop that re-evaluates state after each action. D (hard 300 ms p99) argues against agents, since loops multiply model calls and round trips. B (identical per-request cost) requires deterministic token consumption, which agent loops break. E (one classification on a fixed label set) is the canonical single model call — an agent loop is pure overhead. Blueprint: select appropriate architectural patterns; design multi-agent systems and orchestration strategies.",
+  "source": "CCAR-P Mock Exam (70Q)",
+  "select": 2
+ },
+ {
+  "id": "ccarp-3",
+  "domain_id": 1,
+  "type": "single",
+  "text": "A claims process currently takes 14 days end to end and occupies 30 full-time employees. An architect is presenting a proposed Claude-based solution to the executive sponsor, who must approve the budget. Which framing most directly aligns the design with a business value pillar?",
+  "options": [
+   {
+    "key": "A",
+    "text": "The solution scores 94% on an internal accuracy benchmark built by the engineering team."
+   },
+   {
+    "key": "B",
+    "text": "The design reduces average claim cycle time from 14 days to under one day and redeploys 18 of the 30 FTEs onto complex exception handling."
+   },
+   {
+    "key": "C",
+    "text": "The architecture follows separation-of-concerns principles and is fully containerized for portability."
+   },
+   {
+    "key": "D",
+    "text": "The solution uses the most capable Claude model currently available and a modern cloud-native architecture."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Correct: B. Business value pillars (efficiency, transformation, productivity, cost, performance SLAs) are expressed in units the sponsor's P&L uses. B translates the architecture into cycle-time reduction and labour reallocation, framed as redeployment to higher-value work. D (model choice, cloud-native) are implementation details. C (separation of concerns, containerization) are engineering quality attributes — they answer 'is this well built', not 'why fund it'. A (94%) is a number without a business denominator until tied to an outcome. Blueprint: align solutions to business value pillars (efficiency, transformation, productivity, cost, performance SLAs).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-4",
+  "domain_id": 1,
+  "type": "single",
+  "text": "A team must generate a 60-page regulatory filing composed of nine sections. Each section has a different source dataset, a different reviewer, and different formatting rules. Early attempts at a single prompt producing the whole filing yield inconsistent formatting and silently omitted sections. Which decomposition approach best addresses the failure?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Increase the maximum output tokens and instruct the model to be more thorough."
+   },
+   {
+    "key": "B",
+    "text": "Split the request into three calls of three sections each to reduce output length per call."
+   },
+   {
+    "key": "C",
+    "text": "Decompose into nine independently prompted section generators, each with its own inputs, validation, and reviewer routing, then assemble and run a consistency pass."
+   },
+   {
+    "key": "D",
+    "text": "Move the entire filing template into the system prompt and use few-shot examples of complete past filings."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Correct: C. Inconsistent formatting and silent omissions are the signature of a task carrying too many distinct sub-objectives in one call. Decomposing along the natural seams (section boundaries, which already have distinct data, rules and owners) gives each unit a narrow objective, a checkable output contract, and its own validation, so a missing section becomes a detectable missing job rather than an invisible gap. A final consistency pass handles the cross-cutting concern. A raises the token ceiling (addresses truncation, not omission). B is arbitrary batching that doesn't follow the seams; omission within a batch stays silent. D consumes enormous context and still leaves one call responsible for nine rule sets. Blueprint: apply decomposition techniques for complex problem solving.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-5",
+  "domain_id": 1,
+  "type": "single",
+  "text": "An architect is designing an end-to-end Claude solution for triaging inbound customer emails. The design covers ingestion, processing, and response delivery. A reviewer notes the design has no feedback loop. What is the most important consequence of this omission?",
+  "options": [
+   {
+    "key": "A",
+    "text": "The system will consume more tokens than necessary on each request."
+   },
+   {
+    "key": "B",
+    "text": "Users will be unable to override an incorrect triage decision."
+   },
+   {
+    "key": "C",
+    "text": "The system will be unable to scale horizontally as email volume grows."
+   },
+   {
+    "key": "D",
+    "text": "There is no mechanism to capture ground-truth outcomes, so the team cannot detect quality drift or build an evaluation dataset from production behavior."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Correct: D. A feedback loop is the path by which the system learns what actually happened after it acted. Without it, production is a black box: quality drift is invisible, there is no growing corpus of real labelled examples for evaluation, and every improvement cycle relies on synthetic/hand-written data that ages badly. C (horizontal scale) is a function of statelessness and infrastructure — unaffected. A (token use) is driven by prompt/context design, outside the feedback path. B is close but conflates concerns: user override is an interface/HITL concern; you can build an override button with no feedback loop — the architectural loss is that the override signal never returns to inform evaluation. Blueprint: design end-to-end architectures (input -> processing -> output -> feedback loops).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-6",
+  "domain_id": 1,
+  "type": "single",
+  "text": "A research assistant product must investigate a user question by searching four independent source systems, then synthesize the findings. The four searches do not depend on one another, each returns large volumes of text, and the synthesis requires only the distilled findings. Which orchestration strategy is most appropriate?",
+  "options": [
+   {
+    "key": "A",
+    "text": "An orchestrator that dispatches four parallel subagents, each with its own context window and source system, returning condensed findings to the orchestrator for synthesis."
+   },
+   {
+    "key": "B",
+    "text": "A deterministic workflow that queries all four systems and concatenates the raw results into a single synthesis prompt."
+   },
+   {
+    "key": "C",
+    "text": "Four fully independent agents that each produce a complete answer, with the final answer chosen by majority vote."
+   },
+   {
+    "key": "D",
+    "text": "A single agent that calls all four search tools sequentially within one conversation context."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. This scenario has the three markers that justify a multi-agent topology: the subtasks are genuinely independent (parallel wall-clock savings), each generates large intermediate text the final synthesis does not need (isolated context windows keep the orchestrator's context clean), and the subtasks require different tools and source-specific handling. Each subagent acts as a context filter, returning distilled findings. D (sequential calls in one context) means four round trips and accumulation of all raw output in one window — context degrades and cost rises. C (majority voting) is an ensembling technique for one hard judgment; here the sources are complementary, not redundant. B (concatenate raw results) reintroduces context bloat and forgoes source-specific interpretation. Blueprint: design multi-agent systems and orchestration strategies.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-7",
+  "domain_id": 1,
+  "type": "single",
+  "text": "A Claude-powered system drafts and issues account credits to customers. Credits under $50 represent 92% of volume; credits above $5,000 are rare but carry audit exposure. The business wants automation benefits without accepting unbounded financial risk. Where should human review be placed in the architecture?",
+  "options": [
+   {
+    "key": "A",
+    "text": "On a random 5% sample of all credits, sized to give statistical confidence in the overall error rate."
+   },
+   {
+    "key": "B",
+    "text": "On credits above a value threshold and on any credit the system flags as low confidence, with sampling of the remainder for quality monitoring."
+   },
+   {
+    "key": "C",
+    "text": "On no credits at execution time, with a nightly reconciliation job that reverses incorrect credits after the fact."
+   },
+   {
+    "key": "D",
+    "text": "On every credit, to guarantee that no incorrect credit is ever issued."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Correct: B. Human-in-the-loop is a risk-allocation decision, not a binary switch — put human attention where the expected cost of an error is highest (high-value credits and low-confidence cases) while letting the 92% low-value majority flow. Continuous sampling of the auto-approved path preserves the ability to measure quality so the threshold can be tuned with evidence. This is risk-tiered review. D reviews everything (eliminates the efficiency case; high-volume reviewers rubber-stamp). A is fine for monitoring but a poor control — 95% of high-value credits go unreviewed. C is post-hoc reversal, a detective control that assumes errors are cheaply reversible; financial credits touch customer trust and accounting. Blueprint: apply human-in-the-loop validation strategies; design end-to-end architectures.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-8",
+  "domain_id": 1,
+  "type": "single",
+  "text": "A team describes their design as an \"augmented LLM.\" Which description most accurately characterizes that pattern?",
+  "options": [
+   {
+    "key": "A",
+    "text": "A model that has been further trained on the organization's proprietary corpus."
+   },
+   {
+    "key": "B",
+    "text": "A network of specialized agents that negotiate a solution among themselves."
+   },
+   {
+    "key": "C",
+    "text": "A single model call enhanced with retrieval, tools, and memory, where the control flow remains with the calling application."
+   },
+   {
+    "key": "D",
+    "text": "A model deployed behind a load balancer with automatic failover to a second region."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Correct: C. The augmented LLM is the foundational building block above a bare model call: the model is given retrieval (knowledge it doesn't hold), tools (to act/fetch live data), and memory (to carry state), but the application — not the model — decides what happens next. It's the natural default before reaching for workflow chains or agentic loops because it's the cheapest pattern to test and reason about. A describes fine-tuning/continued pre-training (changes weights). B describes a multi-agent system. D is a deployment/availability topology, saying nothing about how the model gains knowledge or capability. Blueprint: select appropriate architectural patterns (workflow, agentic, augmented LLM).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-9",
+  "domain_id": 1,
+  "type": "single",
+  "text": "An interactive assistant has a contractual SLA of 2 seconds to first visible response. The current design retrieves eight documents, sends them to a large model, and returns the completed answer. Measured p95 is 6.4 seconds, dominated by generation time. Which design change best addresses the SLA without discarding answer quality?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Increase the request timeout to 10 seconds and renegotiate the SLA."
+   },
+   {
+    "key": "B",
+    "text": "Switch to the smallest available model for all requests."
+   },
+   {
+    "key": "C",
+    "text": "Reduce retrieval from eight documents to two."
+   },
+   {
+    "key": "D",
+    "text": "Stream the response so tokens render as they are produced, and move non-essential enrichment out of the critical path."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Correct: D. The SLA governs time to first visible response, not time to completion. When generation time dominates, streaming converts a 6.4 s wait into a sub-second first token while the full answer continues to arrive — satisfying the contract without touching quality. Pairing it with moving optional enrichment/post-processing out of the critical path attacks remaining pre-generation latency. C (cut retrieval to two) shaves some prefill but reduces evidence for small gain. B (blanket downsizing) sacrifices quality on every request; model selection should follow task difficulty and be applied selectively via routing. A (renegotiate the SLA) is a commercial move, not an architectural one, and is unnecessary here. Blueprint: align solutions to business value pillars (performance SLAs); evaluate accuracy-latency trade-offs.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-10",
+  "domain_id": 1,
+  "type": "single",
+  "text": "An internal support assistant must answer questions from a 200,000-document policy library that is updated daily by dozens of authors. Answers must cite the specific policy version in force. Which approach best fits the requirement?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Build a retrieval pipeline over the versioned policy store, returning passages with their version metadata for the model to cite."
+   },
+   {
+    "key": "B",
+    "text": "Give the model a tool that returns the full text of any policy by ID and instruct it to guess relevant IDs."
+   },
+   {
+    "key": "C",
+    "text": "Fine-tune a model on the policy library and retrain nightly as documents change."
+   },
+   {
+    "key": "D",
+    "text": "Place the most frequently referenced policies in the system prompt and rely on the model's general knowledge for the rest."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. Three properties point squarely at retrieval: the corpus is far too large for context, it changes daily, and answers must be attributable to a specific version. Retrieval addresses all three — the index updates as documents change, only relevant passages enter context, and version metadata travels with the passage so the citation is grounded in the retrieved artifact. D fails at the edges (anything outside the hot set falls back to general knowledge with no version info). C (nightly fine-tuning on a daily-changing corpus) is operationally heavy and conceptually mismatched — training teaches behaviour, not exact citable recall. B (fetch-by-ID with no search) forces the model to guess identifiers; useful as a companion to retrieval, not a substitute. Blueprint: translate business problems into Claude-based AI solutions; design a RAG pipeline.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-11",
+  "domain_id": 1,
+  "type": "single",
+  "text": "A nightly job must summarize 500,000 support transcripts. There is no user waiting on the result; the only requirements are that the job completes before 6:00 a.m. and that cost is minimized. Which processing design is most appropriate?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Real-time synchronous calls behind an autoscaling API tier, sized for peak throughput."
+   },
+   {
+    "key": "B",
+    "text": "Asynchronous batch processing with a smaller model selected by evaluation, prompt caching for the shared instruction prefix, and concurrency tuned to the completion deadline."
+   },
+   {
+    "key": "C",
+    "text": "A multi-agent system that assigns each transcript to a specialist agent by product area."
+   },
+   {
+    "key": "D",
+    "text": "A single request containing as many transcripts as the context window allows, repeated until the corpus is exhausted."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Correct: B. The workload is offline, so per-item latency is irrelevant and the only constraints are the deadline and cost — pointing at batch processing (trades response time for throughput/price). Two optimizations follow: caching the shared instruction prefix eliminates repeated processing across 500,000 calls, and an evaluation-backed move to a smaller model cuts cost for a tractable task. Concurrency is tuned to just hit 6:00 a.m. (paying for more speed than the deadline needs is waste). A (autoscaling synchronous peak tier) is what you build when a user is waiting. C (multi-agent routing) adds orchestration cost to a uniform task. D (packing transcripts into one context) degrades quality as the window fills, destroys per-transcript retry granularity, and makes one failure lose a whole batch. Blueprint: design end-to-end architectures; optimize token usage, latency, and cost-performance trade-offs.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-12",
+  "domain_id": 1,
+  "type": "multi",
+  "text": "An architect is reviewing a proposed design in which a Claude call validates whether a submitted IBAN is well formed, checks whether a date falls within a fiscal quarter, and then assesses whether a free-text expense justification is plausible. Select TWO valid criticisms of this design.",
+  "options": [
+   {
+    "key": "A",
+    "text": "Plausibility assessment of free text is unsuitable for a language model and should be handled by rules."
+   },
+   {
+    "key": "B",
+    "text": "IBAN format validation is a deterministic check that should be performed in code, not by a model."
+   },
+   {
+    "key": "C",
+    "text": "The design should use a larger model to improve IBAN validation accuracy."
+   },
+   {
+    "key": "D",
+    "text": "Fiscal-quarter date comparison is deterministic arithmetic that should be performed in code, not by a model."
+   },
+   {
+    "key": "E",
+    "text": "Combining three checks in one call is always incorrect regardless of their nature."
+   }
+  ],
+  "answer": [
+   "B",
+   "D"
+  ],
+  "explanation": "Correct: B and D. The recurring architectural error is spending model inference (with its cost, latency, and non-determinism) on work code does perfectly and for free. IBAN validation is a published checksum algorithm (B) and fiscal-quarter comparison is arithmetic (D) — both should be deterministic pre-checks, with the model reserved for the part that genuinely requires judgment. A inverts the principle: assessing whether a free-text justification is plausible is exactly the open-ended, context-dependent judgment that belongs in the model. E overstates — bundling related judgments in one call is often a reasonable efficiency choice; the flaw is that two of the three shouldn't involve the model. C (larger model) won't validate a checksum more correctly and compounds the mistake. Blueprint: design end-to-end architectures; select appropriate architectural patterns.",
+  "source": "CCAR-P Mock Exam (70Q)",
+  "select": 2
+ },
+ {
+  "id": "ccarp-13",
+  "domain_id": 2,
+  "type": "single",
+  "text": "An application sends an identical 12,000-token system prompt and policy appendix on every request, followed by a short user message that varies. Both cost and time-to-first-token are concerns. Which change most directly improves both?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Switch to the smallest available model regardless of task fit."
+   },
+   {
+    "key": "B",
+    "text": "Move the policy appendix into a few-shot example block at the end of the prompt."
+   },
+   {
+    "key": "C",
+    "text": "Order the request so the stable system prompt and policy appendix precede all variable content, and enable prompt caching."
+   },
+   {
+    "key": "D",
+    "text": "Truncate the policy appendix to its first 2,000 tokens."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Correct: C. Prompt caching works on a stable prefix: identical leading tokens across requests are reused rather than reprocessed. Two conditions must hold, and C establishes both — the repeated content is genuinely identical and comes first, before anything that varies. Cached prefix tokens are billed at a reduced rate and skip prefill, cutting both cost and time-to-first-token with no loss of information. A single varying token ahead of the appendix would invalidate the whole cacheable prefix. D truncates required policy content (a correctness regression disguised as optimization). B places static content after variable content — backwards for caching — and mislabels policy as few-shot examples. A ('regardless of task fit') trades unmeasured quality for cost and ignores the 12,000 repeated tokens. Blueprint: implement prompt reuse strategies (caching, modular prompts, Skills); optimize context windows and manage token usage.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-14",
+  "domain_id": 2,
+  "type": "single",
+  "text": "A team is choosing a Claude model for a high-volume, latency-sensitive intent classification step that routes messages into one of six categories. Accuracy on a held-out set is 97.8% with a smaller, faster model and 98.4% with the largest model, which costs roughly eight times more per request and adds 900 ms. Which decision is best supported?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Alternate between models to balance cost and accuracy on average."
+   },
+   {
+    "key": "B",
+    "text": "Use the largest model for the first month, then re-evaluate."
+   },
+   {
+    "key": "C",
+    "text": "Use the largest model, because accuracy is the primary quality metric."
+   },
+   {
+    "key": "D",
+    "text": "Use the smaller model for this step, and reserve larger-model capacity for downstream steps where the accuracy delta materially changes outcomes."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Correct: D. Model selection is a per-step decision. Here the marginal gain is 0.6 percentage points bought at ~8x cost and ~1 s added latency on a high-volume, latency-sensitive routing step where a misroute is usually recoverable — so the value of that last 0.6% is low. Use the cheapest model that clears the quality bar at each step and concentrate capability where errors are expensive. C treats accuracy as the only metric when latency and cost are explicit constraints. B defers without stating what evidence would change the decision (you already have the comparative data). A (non-deterministic alternation) gives the average of two behaviours and the debuggability of neither, and makes results irreproducible. Blueprint: select appropriate Claude models based on trade-offs.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-15",
+  "domain_id": 2,
+  "type": "single",
+  "text": "A long-running agent conversation degrades in quality after roughly 40 turns: the agent begins repeating completed steps and losing track of the user's original constraints. Which context engineering approach best addresses this?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Introduce structured context management — periodically compact the history into a running state summary that preserves the original objective and constraints, and carry that forward instead of the full transcript."
+   },
+   {
+    "key": "B",
+    "text": "Restart the conversation from scratch whenever quality degrades."
+   },
+   {
+    "key": "C",
+    "text": "Instruct the agent in the system prompt to remember everything discussed."
+   },
+   {
+    "key": "D",
+    "text": "Increase the temperature so the agent produces more varied responses."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. As the context window fills, the signal-to-noise ratio falls: the original objective and constraints, stated once, are diluted by dozens of turns of intermediate reasoning and tool output. Compaction addresses the cause by periodically distilling the transcript into a structured state summary (goal, constraints, what's done, what remains) and carrying that forward — crucially re-asserting the objective at a recent position rather than leaving it buried thousands of tokens back. D (raise temperature) controls sampling randomness, not memory, and will worsen drift/repetition. C ('remember everything') is an instruction that cannot create a capability the architecture doesn't provide. B (restart) discards accumulated state and forces the user to re-establish context — and it recurs every 40 turns. Blueprint: optimize context windows and manage token usage.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-16",
+  "domain_id": 2,
+  "type": "single",
+  "text": "A model must extract structured data from semi-structured invoices that vary widely in layout. Zero-shot prompting produces correct field values but inconsistent output structure, breaking the downstream parser. Which technique most directly addresses the problem?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Chain-of-thought prompting, so the model reasons step by step before answering."
+   },
+   {
+    "key": "B",
+    "text": "Few-shot examples demonstrating the exact output structure across several layout variations, combined with an explicitly specified output schema."
+   },
+   {
+    "key": "C",
+    "text": "Raising the maximum output token limit."
+   },
+   {
+    "key": "D",
+    "text": "Running the extraction twice and comparing results."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Correct: B. Diagnose precisely: the values are correct (comprehension is fine); the structure is inconsistent (a formatting problem). Few-shot examples are the most direct instrument for controlling output shape because they demonstrate the target format rather than describe it, and spanning several layout variations shows the structure stays constant even as input varies. Pairing examples with an explicit schema gives both a specification and a demonstration. A (chain-of-thought) helps multi-step reasoning, but the model isn't reasoning incorrectly — added reasoning tokens raise cost/latency and can make parsing harder. C (token ceiling) addresses truncation, which isn't the problem. D (duplicate + compare) is a consistency check that doubles cost and still can't tell the parser which of two structurally different outputs to accept. Blueprint: apply prompt engineering techniques (zero-shot, few-shot, chain-of-thought).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-17",
+  "domain_id": 2,
+  "type": "single",
+  "text": "An organization maintains eleven Claude-powered internal tools. Each has its own system prompt, and each embeds the same 900-word block describing company tone, escalation policy, and prohibited topics. A policy change now requires editing all eleven. Which approach best addresses the maintainability problem?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Consolidate the eleven tools into a single application with one system prompt."
+   },
+   {
+    "key": "B",
+    "text": "Shorten the shared block so that future edits are less burdensome."
+   },
+   {
+    "key": "C",
+    "text": "Factor the shared block into a versioned, centrally maintained prompt module that each tool composes into its own system prompt at build or run time."
+   },
+   {
+    "key": "D",
+    "text": "Instruct each tool to fetch the current policy from a database at the start of every conversation and reason about it."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Correct: C. This is a software engineering problem in prompt clothing, and the software answer applies: eliminate duplication by extracting the shared element into a single versioned artifact that consumers compose. Modular prompt construction gives one place to make a policy change, version history for audit (valuable for escalation/prohibited-topic rules), and the ability to roll a change forward or back across all eleven tools coherently. Each tool keeps its task-specific instructions and composes the shared module alongside them. A (merge eleven tools into one app) trades a small maintenance issue for a large coupling issue. B (shorten) reduces the size of the duplicated block, not the number of copies. D (runtime DB fetch) turns static policy into dynamic content, defeats prompt caching, and adds a network dependency for content that changes a few times a year. Blueprint: implement prompt reuse strategies (caching, modular prompts, Skills).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-18",
+  "domain_id": 2,
+  "type": "single",
+  "text": "A customer-facing assistant must never provide individualized financial advice, must escalate to a human when a user expresses distress, and must decline requests outside the product's scope. Where are these constraints best expressed?",
+  "options": [
+   {
+    "key": "A",
+    "text": "In a post-processing filter that inspects the model's output and blocks violations."
+   },
+   {
+    "key": "B",
+    "text": "In the model's training data through fine-tuning."
+   },
+   {
+    "key": "C",
+    "text": "In each user message, appended by the client application."
+   },
+   {
+    "key": "D",
+    "text": "In the system prompt, stated as explicit behavioral rules with defined escalation actions, reinforced by programmatic checks for the highest-risk conditions."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Correct: D. The system prompt is the correct home for persistent behavioural constraints: it applies to every turn, sits in a privileged position relative to user input, and is stable enough to cache. Expressing the rules as explicit behaviours with defined actions (not just prohibitions but what to do instead — e.g. the specific escalation path on distress) makes them actionable. The second clause matters as much: the highest-risk conditions get a programmatic check too, because prompt-level guardrails are probabilistic and defence in depth suits serious harm. C (repeat in every user message) wastes tokens, breaks the cacheable prefix, and puts rules in the least privileged position. A (output filtering alone) is purely detective, tends to produce blunt refusals, and does nothing for the escalation action. B (fine-tuning) is slow, opaque, hard to update, and provides no audit trail of what rule was in force. Blueprint: design system prompts, templates, and guardrails.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-19",
+  "domain_id": 2,
+  "type": "single",
+  "text": "A document-analysis prompt places the user's question first, followed by a 30,000-token contract. Reviewers observe that the model sometimes answers about the wrong clause. Which adjustment is most likely to improve grounding?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Place the long document first and the question at the end, and ask the model to quote the relevant passages before answering."
+   },
+   {
+    "key": "B",
+    "text": "Increase temperature to encourage broader consideration of the document."
+   },
+   {
+    "key": "C",
+    "text": "Reduce the document to its first 5,000 tokens."
+   },
+   {
+    "key": "D",
+    "text": "Repeat the question five times throughout the document."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. Two well-established techniques apply. Placing long-form source material before the instruction improves performance on long-context tasks (and makes the document a stable, cacheable prefix if queried repeatedly). Asking the model to quote the relevant passages before answering forces an explicit grounding step — the answer must be built from located text rather than a diffuse impression, and reviewers gain a visible artifact showing which clause was used, so wrong-clause errors become detectable. C (truncate to 5,000 tokens) makes 25,000 tokens of contract unavailable — later clauses become unanswerable. B (raise temperature) increases variance on a task needing precise clause identification. D (interleave the question) corrupts the source material, breaks caching, and risks the model treating injected text as part of the contract. Blueprint: optimize context windows and manage token usage; apply prompt engineering techniques.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-20",
+  "domain_id": 2,
+  "type": "single",
+  "text": "A team wants to package a repeatable capability — a set of instructions, reference files, and helper scripts for producing the company's standard incident report — so that it loads only when relevant rather than occupying context on every request. Which mechanism is designed for this?",
+  "options": [
+   {
+    "key": "A",
+    "text": "A separate fine-tuned model for incident reports."
+   },
+   {
+    "key": "B",
+    "text": "An Agent Skill, which is discovered by name and description and whose full contents load only when the task calls for it."
+   },
+   {
+    "key": "C",
+    "text": "A larger system prompt containing the full instructions and reference material."
+   },
+   {
+    "key": "D",
+    "text": "A few-shot example block appended to every request."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Correct: B. The requirement names the defining property of Skills: progressive disclosure. A Skill exposes only a lightweight name and description up front so the model can recognize when it's relevant, and its full instructions, reference files, and scripts load into context only once invoked — keeping baseline context cost near zero for the many requests that have nothing to do with incident reports while making the full capability available on the ones that do. Bundling executable helper scripts alongside instructions is also specific to Skills. C (everything in the system prompt) is the monolithic alternative the requirement rules out — every request pays the full cost regardless of relevance. D (append examples to every request) has the same always-on cost and can't carry reference files or scripts. A (separate fine-tuned model) is far heavier, can't carry scripts, and forces a routing decision before the request is understood. Blueprint: implement prompt reuse strategies (caching, modular prompts, Skills); evaluate progressive discovery vs monolithic context strategy.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-21",
+  "domain_id": 2,
+  "type": "multi",
+  "text": "A prompt has grown to 6,000 tokens through incremental additions and now produces inconsistent results. Select TWO revisions most likely to improve reliability.",
+  "options": [
+   {
+    "key": "A",
+    "text": "Identify and remove instructions that contradict one another, resolving each conflict explicitly."
+   },
+   {
+    "key": "B",
+    "text": "Raise the temperature so the model is less rigid about conflicting instructions."
+   },
+   {
+    "key": "C",
+    "text": "Convert the entire prompt into a single unbroken paragraph to reduce token count."
+   },
+   {
+    "key": "D",
+    "text": "Add a final instruction telling the model to follow all preceding instructions carefully."
+   },
+   {
+    "key": "E",
+    "text": "Restructure the prompt with clear sections — role, task, constraints, output format — so related instructions are grouped rather than scattered."
+   }
+  ],
+  "answer": [
+   "A",
+   "E"
+  ],
+  "explanation": "Correct: A and E. Prompts that grow by accretion accumulate two specific defects. Contradictory instructions (A) are the most common cause of inconsistency — the model resolves the conflict differently across runs, which looks like randomness; finding and explicitly resolving them removes the ambiguity. Structural disorganization (E) is the second defect: when constraints on one topic are scattered across 6,000 tokens, no single instruction is salient; grouping by role/task/constraints/output format makes the instruction set legible and reviewable. D (a meta-instruction to follow instructions) adds tokens without information — if two rules conflict, being told to follow both carefully doesn't say which wins. B (temperature) is not a conflict-resolution mechanism and increases variance. C (collapse structure to save tokens) trades a large reliability loss for a trivial saving. Blueprint: design system prompts, templates, and guardrails.",
+  "source": "CCAR-P Mock Exam (70Q)",
+  "select": 2
+ },
+ {
+  "id": "ccarp-22",
+  "domain_id": 3,
+  "type": "single",
+  "text": "A customer-support agent is configured with tools that let it read tickets, draft replies, issue refunds, apply account credits, delete user accounts, and modify billing plans. The support tier it serves is authorized only to read tickets and draft replies; all financial and destructive actions are handled by a separate team. Applying least privilege, which change best reduces risk?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Add detailed audit logging to the refund, credit, deletion, and billing tools so misuse can be investigated afterward."
+   },
+   {
+    "key": "B",
+    "text": "Retain all tools but require a confirmation prompt before any financial or destructive action."
+   },
+   {
+    "key": "C",
+    "text": "Remove the refund, credit, deletion, and billing tools from this agent's configuration entirely."
+   },
+   {
+    "key": "D",
+    "text": "Retain all tools but instruct the agent in its system prompt never to use the financial or destructive ones."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Correct: C. Least privilege means an identity holds only the capabilities its role requires. Since this tier never legitimately issues refunds, credits, deletions or plan changes, those tools shouldn't be in its configuration at all. Removal eliminates the attack surface rather than monitoring or guarding it — no prompt injection, model error, or confused-deputy path can invoke a tool the agent doesn't possess. It also reduces tool-selection ambiguity, improving accuracy on the remaining tools. A (logging) is detective — it tells you an unauthorized refund happened, it doesn't stop it. B (confirmation prompts) is a compensating control that depends on a human reliably rejecting a plausible request; confirmation fatigue sets in at volume — appropriate when the capability is needed but risky, not when it isn't needed at all. D (instruct the model not to use them) is a probabilistic constraint on a system whose inputs may include adversarial text; authorization must be enforced at the boundary. Blueprint: analyze authentication and authorization requirements to identify security gaps; evaluate tool/agent configuration for capability bloat.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-23",
+  "domain_id": 3,
+  "type": "single",
+  "text": "An agent has accumulated 47 tools across six integrations. Evaluation shows the agent increasingly selects the wrong tool, and token consumption per request has risen sharply even for simple queries. What is the most likely diagnosis and appropriate remedy?",
+  "options": [
+   {
+    "key": "A",
+    "text": "The temperature is too high; lower it to make tool selection deterministic."
+   },
+   {
+    "key": "B",
+    "text": "The integrations are too slow; add caching to the tool responses."
+   },
+   {
+    "key": "C",
+    "text": "The model is too small; upgrade to a more capable model."
+   },
+   {
+    "key": "D",
+    "text": "Capability bloat — every tool definition occupies context and expands the selection space; consolidate overlapping tools, remove unused ones, and load tool groups progressively by task type."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Correct: D. Both symptoms trace to one cause. Every tool definition (name, description, parameter schema) is serialized into context on every request, so 47 tools impose a fixed token tax even on a query that needs none of them — explaining the cost rise on simple queries. Simultaneously, a larger, overlapping tool set makes selection harder: when three tools plausibly match an intent, error rates climb. The remedy attacks both — consolidate near-duplicate tools, delete the unused, and expose only the subset relevant to the current task rather than the full catalogue. C (bigger model) may select slightly better from a bloated set but doesn't reduce token overhead or fix ambiguity. A (lower temperature) makes the agent consistently pick the same wrong tool — the errors stem from option-space ambiguity, not sampling randomness. B (response caching) addresses integration latency, which isn't among the reported symptoms. Blueprint: evaluate tool/agent configuration for capability bloat.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-24",
+  "domain_id": 3,
+  "type": "single",
+  "text": "A RAG system indexes technical manuals in which procedures span several pages and individual steps frequently reference earlier steps. The current pipeline splits documents into fixed 400-token chunks at arbitrary boundaries. Users report answers that describe a procedure's middle steps while omitting its beginning and end. Which change best addresses the failure?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Move to structure-aware chunking that respects procedure boundaries, with overlap between adjacent chunks and parent-document or section context attached to each chunk."
+   },
+   {
+    "key": "B",
+    "text": "Switch the embedding model to one with a larger vocabulary."
+   },
+   {
+    "key": "C",
+    "text": "Increase the number of retrieved chunks from 5 to 50."
+   },
+   {
+    "key": "D",
+    "text": "Reduce chunk size to 200 tokens so more chunks can be retrieved within the same token budget."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. The symptom — partial procedures — is diagnostic of chunk boundaries cutting across semantic units. Fixed-size splitting at arbitrary offsets severs a procedure mid-sequence, so a retrieved chunk contains steps 4-9 with no indication that steps 1-3 exist. Structure-aware chunking aligns boundaries with the document's own semantics (procedure, section, heading), overlap preserves continuity where a split is unavoidable, and attaching parent/section context tells retriever and model what larger unit a chunk belongs to. D (halve chunk size) makes fragmentation worse. C (retrieve 50 chunks) floods context with mostly irrelevant material, raising cost/latency and diluting signal — it doesn't make retrieval correct. B (vocabulary size) is not the constraint; no embedding model can retrieve context the chunking strategy already discarded. Blueprint: design a RAG pipeline with appropriate chunking and indexing strategies.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-25",
+  "domain_id": 3,
+  "type": "single",
+  "text": "A knowledge base contains product documentation searched with natural-language questions, plus a catalogue of part numbers such as \"XR-4471-B\" that users search for exactly. Pure semantic search performs well on the questions but frequently fails to return the correct part when a user pastes a part number. Which retrieval strategy best fits?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Semantic search only, with a larger embedding model."
+   },
+   {
+    "key": "B",
+    "text": "Hybrid retrieval combining lexical/keyword matching with semantic search, fusing the ranked results."
+   },
+   {
+    "key": "C",
+    "text": "Keyword search only, since exact matching is the failing case."
+   },
+   {
+    "key": "D",
+    "text": "Semantic search with the part number repeated three times in the query."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Correct: B. The corpus contains two query patterns with opposite requirements. Natural-language questions need semantic matching (the user's words rarely match the document's). Identifiers like 'XR-4471-B' need lexical matching, because their meaning is entirely in the exact token sequence — embeddings place structurally similar identifiers close together, so 'XR-4471-B' and 'XR-4471-D' become near-neighbours and the wrong part is returned. Hybrid retrieval runs both and fuses rankings, so each query type is served by the method suited to it. A (larger embedding model) doesn't resolve that exact identifiers are a lexical phenomenon — dense vectors compress; identifiers must not be compressed. C (keyword only) fixes the part-number case by breaking the question case. D (repeat the token) is a superstition that perturbs the embedding without making the search lexical. Blueprint: apply retrieval strategies matched to data shape and query pattern.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-26",
+  "domain_id": 3,
+  "type": "single",
+  "text": "An enterprise wants Claude-based assistants built by four different teams to access the same set of internal systems — a CRM, a ticketing system, and a data warehouse — without each team writing and maintaining its own integration code. Which integration mechanism is most appropriate?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Each team embeds the systems' data as static context in its system prompt, refreshed nightly."
+   },
+   {
+    "key": "B",
+    "text": "Each team writes direct REST API clients for each system inside its own application."
+   },
+   {
+    "key": "C",
+    "text": "Expose each internal system through a Model Context Protocol server that any compliant client can connect to, so integrations are built once and reused across teams."
+   },
+   {
+    "key": "D",
+    "text": "Route all four assistants through a single shared agent that owns every integration."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Correct: C. MCP exists precisely for the N-clients-by-M-systems problem. Implementing each system once as an MCP server means the integration — its tools, resources, authentication handling, and schemas — is written and maintained in one place, and any compliant client can consume it. The four teams connect rather than build, upgrades to a server propagate to all consumers, and behaviour is consistent across assistants. The tell is: multiple consumers, shared systems, a desire to avoid bespoke glue. B is the status quo the requirement rejects (four implementations per system, four sets of auth, inevitable drift). A (static nightly snapshots) is stale by construction, can't support writes, and scales badly while destroying prompt caching. D (one shared agent) couples unrelated products, creates a single point of failure, and confuses shared integration plumbing with a shared reasoning agent (it would also hold the union of all permissions). Blueprint: evaluate connection protocols and select the appropriate integration mechanism (MCP, API/CLI, agent-to-agent).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-27",
+  "domain_id": 3,
+  "type": "single",
+  "text": "An agent connects to an MCP server that exposes 200 tools. The team wants the agent to remain effective without loading all 200 tool definitions into context on every request. Which strategy best fits?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Split the agent into 200 single-tool agents, one per tool."
+   },
+   {
+    "key": "B",
+    "text": "Load a fixed subset of 20 tools chosen by the development team and ignore the rest."
+   },
+   {
+    "key": "C",
+    "text": "Load all 200 definitions but shorten each description to one sentence."
+   },
+   {
+    "key": "D",
+    "text": "Use progressive discovery — expose a compact index of available capabilities and let the agent load full definitions for the tools it determines are relevant to the current task."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Correct: D. Progressive discovery is the direct answer to large capability surfaces. Rather than paying the full definition cost of 200 tools on every request, the agent sees a lightweight index sufficient to identify what might be relevant, then loads complete schemas on demand for the few tools it actually needs. Context cost becomes proportional to what the task requires rather than to catalogue size, and selection accuracy improves because the agent chooses among a handful of candidates rather than 200. C (truncate descriptions) reduces the bill somewhat while making selection harder — descriptions are the primary selection signal — and still loads all 200. A (200 single-tool agents) converts a context problem into an orchestration nightmare whose router must itself know about all 200 capabilities. B (hard-code a 20-tool subset) caps cost by permanently removing capability, so any task needing tool 21 simply fails, and requires predicting usage in advance. Blueprint: evaluate progressive discovery vs monolithic context strategy.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-28",
+  "domain_id": 3,
+  "type": "single",
+  "text": "A Claude agent is integrated with an internal HR system through a service account that holds broad administrative permissions, because \"the agent needs to serve every employee.\" End users authenticate to the chat interface, but their identity is not propagated to the HR system. What is the most significant security gap?",
+  "options": [
+   {
+    "key": "A",
+    "text": "The agent operates as a confused deputy — every user's request executes with full administrative rights, so a user can retrieve data they are not entitled to see."
+   },
+   {
+    "key": "B",
+    "text": "The HR system may rate-limit the service account under load."
+   },
+   {
+    "key": "C",
+    "text": "The service account credential may expire and interrupt service."
+   },
+   {
+    "key": "D",
+    "text": "Service account activity will appear in logs under a single identity, complicating capacity planning."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. This is the classic confused-deputy vulnerability. The agent is a privileged intermediary acting on behalf of unprivileged callers without carrying their identity, so the HR system's own access controls — which would normally prevent an employee reading a colleague's salary or performance record — are entirely bypassed. Authorization has collapsed onto whatever the agent's prompt happens to enforce, a probabilistic control protecting sensitive personal data. The correct pattern is to propagate the end user's identity so the downstream system evaluates permissions per request (or at minimum scope the credential to least privilege and enforce per-user filtering in a trusted layer). C (credential expiry) is an availability concern. B (rate limiting) is a capacity concern. D (attribution loss in logs) is a genuine consequence of shared service accounts but framing it as capacity planning misses the point and is a lesser harm than the unauthorized data access. Blueprint: analyze authentication and authorization requirements to identify security gaps.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-29",
+  "domain_id": 3,
+  "type": "multi",
+  "text": "A production agentic system serves 50,000 requests per day across multi-step tool-calling sessions. The team can currently see only the final response and total latency. Select TWO observability capabilities that would most improve their ability to diagnose failures.",
+  "options": [
+   {
+    "key": "A",
+    "text": "A daily count of total requests served."
+   },
+   {
+    "key": "B",
+    "text": "Aggregate CPU utilization of the application servers."
+   },
+   {
+    "key": "C",
+    "text": "Trace-level capture of each step in a session — tool calls, arguments, results, and intermediate model outputs — correlated by a session identifier."
+   },
+   {
+    "key": "D",
+    "text": "Per-step latency and token attribution, so cost and time can be traced to specific tools or reasoning steps."
+   },
+   {
+    "key": "E",
+    "text": "A dashboard showing average response length in characters."
+   }
+  ],
+  "answer": [
+   "C",
+   "D"
+  ],
+  "explanation": "Correct: C and D. In agentic systems the interesting failures happen inside the session, not at its edges. Step-level tracing correlated by session ID (C) is foundational: without it a wrong final answer is an unexplainable event; with it you can see the agent called the right tool with a malformed argument, or looped three times on a failing retrieval. Per-step latency and token attribution (D) converts aggregate cost/latency into actionable signal — one tool accounts for 70% of p95, or one reasoning step consumes most of the budget. Together they turn a black box into something diagnosable. A (daily request count) is a volume metric. E (average response length) is a weak proxy that correlates poorly with quality. B (CPU utilization) measures infrastructure health, but in an LLM system time and cost are dominated by inference and external calls, so app-server CPU is nearly irrelevant to diagnosing quality/latency failures. Blueprint: analyze observability challenges and select monitoring strategies at scale.",
+  "source": "CCAR-P Mock Exam (70Q)",
+  "select": 2
+ },
+ {
+  "id": "ccarp-30",
+  "domain_id": 3,
+  "type": "single",
+  "text": "A fraud-review assistant currently achieves 96% accuracy with a p95 latency of 4.1 seconds by retrieving 20 documents and using an extended reasoning configuration. The business states that reviewers abandon the tool above 2 seconds, and that a 2-point accuracy drop is acceptable if it keeps reviewers in the tool. Which configuration decision is best justified?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Reduce retrieval to a single document, which will minimize latency."
+   },
+   {
+    "key": "B",
+    "text": "Reduce retrieval depth and reasoning budget to land near 2 seconds, validate that accuracy remains at or above 94% on the evaluation set, and route only low-confidence cases to the slower high-accuracy path."
+   },
+   {
+    "key": "C",
+    "text": "Keep the configuration and add a progress indicator so reviewers are willing to wait longer."
+   },
+   {
+    "key": "D",
+    "text": "Keep the current configuration, because accuracy is paramount in fraud review."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Correct: B. The business has done the hard part: it stated the trade-off explicitly, giving a latency threshold and an accuracy tolerance. The architect's job is to find the configuration that satisfies both and to verify it — tuning retrieval depth and reasoning budget toward the 2-second target, then validating against the eval set that accuracy stayed at/above the stated 94% floor. The tiered-routing clause is what makes the answer strong: sending only low-confidence cases down the slow, thorough path preserves accuracy where it matters while keeping the common case fast. A tool reviewers abandon has an effective accuracy of zero. D overrides an explicit business decision with a technical preference — accuracy never consumed is not paramount, it's unused. A (single-document retrieval) is an unvalidated overcorrection that will likely breach the 94% floor — the requirement was to hit 2 s, not minimize latency at any cost. C (progress indicator) manages perception, not latency; the threshold came from observed abandonment behaviour. Blueprint: evaluate accuracy-latency trade-offs and justify configuration decisions.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-31",
+  "domain_id": 3,
+  "type": "single",
+  "text": "A RAG pipeline over a legal corpus returns passages that are topically related to the query but frequently miss the single most authoritative passage, which sits lower in the ranking. Retrieval recall at 50 is high; precision at 5 is poor. Which technique most directly addresses this?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Increase the number of passages sent to the model from 5 to 50."
+   },
+   {
+    "key": "B",
+    "text": "Lower the similarity threshold so more candidates qualify."
+   },
+   {
+    "key": "C",
+    "text": "Add a reranking stage that scores the top 50 candidates against the query with a more precise model and passes the top 5 to generation."
+   },
+   {
+    "key": "D",
+    "text": "Reduce the corpus to only the most recent documents."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Correct: C. The diagnosis is given precisely: high recall at 50 means the right passage is being retrieved, and poor precision at 5 means it isn't ranked highly enough to survive into the generation context. That's the textbook signature of a ranking problem, and reranking is built for it — a two-stage design where a fast retriever casts a wide net and a slower, more accurate cross-encoder reorders the candidates. You get the recall of a broad search with the precision of an expensive scorer, paying the expensive cost on only 50 items rather than the whole corpus. A (send all 50) floods context with ~45 mostly irrelevant documents, raising cost/latency and diluting the authoritative passage among near-misses — dangerous on a legal corpus. D (recency) is not authority; controlling statutes/precedent may be older. B (lower threshold) admits more weak candidates, worsening precision — the system doesn't retrieve too little. Blueprint: apply retrieval strategies matched to data shape and query pattern; design a RAG pipeline.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-32",
+  "domain_id": 3,
+  "type": "single",
+  "text": "An architect must connect a Claude application to a legacy mainframe system that exposes only a batch file interface with a four-hour processing window. Business users expect conversational responses. Which integration design is most realistic?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Replace the mainframe before building the Claude application."
+   },
+   {
+    "key": "B",
+    "text": "Instruct the model to approximate mainframe data from its general knowledge when a query arrives."
+   },
+   {
+    "key": "C",
+    "text": "Have the agent call the mainframe synchronously during the conversation and wait for the batch result."
+   },
+   {
+    "key": "D",
+    "text": "Maintain a synchronized read model — periodically extracted mainframe data in a queryable store the agent reads in real time — and handle writes as asynchronous submissions with status tracking and clear user expectations about timing."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Correct: D. Good integration design respects the constraints of the systems being integrated rather than wishing them away. A four-hour batch window cannot serve a conversational read, so reads are served from a synchronized store extracted on the mainframe's own schedule, giving real-time query performance at the cost of bounded staleness — a trade-off made explicit to users. Writes can't be instantaneous either, so they're modelled honestly as asynchronous submissions with a tracking identifier and status visibility. Separating read and write paths and setting accurate expectations is the mature answer. C (block the conversation up to four hours) is a timeout, not an integration. B (fabricate data from general knowledge) is the most damaging option — every answer is invented while appearing authoritative. A (replace the mainframe) is a multi-year programme unrelated to the deliverable; modernization may be a valid parallel recommendation but it isn't the integration design. Blueprint: evaluate connection protocols and select the appropriate integration mechanism; manage stakeholder expectation alignment.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-33",
+  "domain_id": 3,
+  "type": "single",
+  "text": "During a design review, a team proposes letting the agent construct and execute arbitrary SQL against the production data warehouse so it can answer any analytical question. What is the strongest architectural objection?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Arbitrary query execution grants unbounded read scope and resource consumption; the safer pattern is parameterized queries or curated views with enforced row-level security, column masking, and resource limits."
+   },
+   {
+    "key": "B",
+    "text": "SQL is an outdated interface and should be replaced with a REST API."
+   },
+   {
+    "key": "C",
+    "text": "The data warehouse will be too slow to respond within a conversation."
+   },
+   {
+    "key": "D",
+    "text": "SQL generation is a task language models cannot perform at all."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. The objection is scope, not capability. 'Any analytical question' means the agent can read any table — including columns holding personal or financial data the requesting user has no right to see — and can issue a query that consumes enormous warehouse resources. Both risks are structural, not model failures — a perfectly correct query can still be unauthorized or ruinously expensive. The safer pattern narrows what is reachable: expose curated views rather than raw tables, apply row-level security and column masking so the database enforces entitlements regardless of what the agent generates, use parameterized templates where the question space is known, and impose query timeouts and cost ceilings. D (models can't generate SQL) is false and overstating the objection weakens it. C (warehouse latency) is a real performance consideration but not the strongest objection when unbounded access to sensitive data is on the table. B (replace SQL with REST) doesn't address scope or resource control — you'd need the same controls behind a different protocol. Blueprint: analyze authentication and authorization requirements to identify security gaps.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-34",
+  "domain_id": 3,
+  "type": "single",
+  "text": "Two autonomous systems built by different departments must collaborate: a procurement agent that can request quotes and a finance agent that can approve budget. Neither team will expose its internal tools to the other, and each must retain its own authorization boundary. Which integration approach is most appropriate?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Have a human manually relay messages between the two agents."
+   },
+   {
+    "key": "B",
+    "text": "An agent-to-agent interaction in which each system exposes a narrow, contract-defined interface for the specific collaboration, with each retaining its own authorization and audit boundary."
+   },
+   {
+    "key": "C",
+    "text": "Have the procurement agent call the finance system's internal APIs directly using shared credentials."
+   },
+   {
+    "key": "D",
+    "text": "Merge both agents into one with the union of all tools."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Correct: B. Two constraints jointly determine the answer: neither side will expose internal tools, and each must keep its own authorization boundary. Agent-to-agent interaction is designed for exactly this — autonomous systems collaborate through a narrow, explicitly contracted interface rather than by sharing internals. Each side continues to enforce its own permissions and produce its own audit trail, and the collaboration surface is small enough to review and version independently. The tell is peer systems with separate ownership. D (merge) violates both constraints at once and creates a single agent holding both procurement and budget-approval powers — a segregation-of-duties failure. C (shared credentials) collapses the two identities so finance loses attribution and its own rule enforcement, and directly contradicts not exposing internal interfaces. A (manual relay) isn't an integration design; it inserts a human clerical step into a system built for automation and won't scale or produce a reliable audit trail. Blueprint: evaluate connection protocols and select the appropriate integration mechanism (MCP, API/CLI, agent-to-agent).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-35",
+  "domain_id": 4,
+  "type": "single",
+  "text": "A RAG-based support assistant begins returning confident but incorrect answers immediately after a scheduled documentation refresh. The model version, prompt, temperature, and p95 latency are all unchanged. What is the most likely first place to investigate?",
+  "options": [
+   {
+    "key": "A",
+    "text": "The context window size has been reduced."
+   },
+   {
+    "key": "B",
+    "text": "The model weights have been silently updated by the provider."
+   },
+   {
+    "key": "C",
+    "text": "The retrieval and indexing step is returning stale, irrelevant, or improperly parsed chunks following the refresh."
+   },
+   {
+    "key": "D",
+    "text": "The temperature setting has become too low, making the model overconfident."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Correct: C. Diagnosis in a multi-component system starts with what changed. The one variable that moved is the document corpus, and the symptom — fluent, confident answers that are factually wrong — is the classic signature of a model faithfully summarizing bad context. A refresh can break retrieval several ways: a re-index that failed partway leaving a mix of old and new content, an embedding regeneration that didn't complete so vectors no longer correspond to their text, a parser that mishandled a changed document format, or metadata that no longer matches. Inspecting the actual retrieved chunks for a failing query is the fastest way to confirm. B (silent weight update) isn't how versioned endpoints work and doesn't explain the timing. D (temperature) is stated unchanged and low temperature produces consistency, not fabrication. A (shrunken context window) would produce truncation/dropped content, and again nothing in the scenario changed there. Blueprint: diagnose system issues (prompt failure, hallucinations, model mismatch).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-36",
+  "domain_id": 4,
+  "type": "single",
+  "text": "A team is building the first evaluation set for a customer-email classification system before launch. Which composition is most appropriate?",
+  "options": [
+   {
+    "key": "A",
+    "text": "1,000 examples generated by a language model to cover the label space quickly."
+   },
+   {
+    "key": "B",
+    "text": "The 50 emails the team found most interesting during development."
+   },
+   {
+    "key": "C",
+    "text": "A random sample of production traffic with labels assigned by the system itself."
+   },
+   {
+    "key": "D",
+    "text": "A set built primarily from real historical emails labelled by domain experts, deliberately including known edge cases, ambiguous items, and the rare-but-costly categories, with class balance recorded rather than artificially equalized."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Correct: D. An evaluation set is only useful insofar as performance on it predicts performance in production, which requires real distributional characteristics and trustworthy labels. Expert-labelled historical emails give ground truth grounded in actual customer language. Deliberately including edge cases, ambiguous items, and rare-but-costly categories is what makes the set diagnostic — average accuracy on easy examples hides exactly the failures that matter. Recording rather than equalizing class balance keeps the metric interpretable (forcing a 2% category to 14% produces numbers that don't correspond to reality). A (synthetic as the primary basis) bakes the generating model's blind spots into the yardstick. B (50 dev-selected examples) is too small for confidence and biased toward cases the team already thought about. C (labelling production data with the system under test) is circular — it scores near-perfectly by construction; sampling production traffic is good, but the labels must come from an independent source. Blueprint: design evaluation datasets and test frameworks using mixed methodologies.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-37",
+  "domain_id": 4,
+  "type": "multi",
+  "text": "An architect is defining evaluation metrics for a production Claude system. Select TWO statements that reflect sound evaluation design.",
+  "options": [
+   {
+    "key": "A",
+    "text": "Evaluation should be performed once before launch and repeated only if users complain."
+   },
+   {
+    "key": "B",
+    "text": "Metrics should span quality, latency, cost, and safety, because optimizing any one alone can degrade the others."
+   },
+   {
+    "key": "C",
+    "text": "Safety evaluation is only necessary for consumer-facing systems."
+   },
+   {
+    "key": "D",
+    "text": "A single aggregate accuracy figure is sufficient if it is measured on a large enough sample."
+   },
+   {
+    "key": "E",
+    "text": "Metrics should be segmented by meaningful slices — such as request type, customer tier, or language — because aggregate figures conceal localized failure."
+   }
+  ],
+  "answer": [
+   "B",
+   "E"
+  ],
+  "explanation": "Correct: B and E. Sound evaluation is multi-dimensional and segmented. Multi-dimensional (B) because these systems have coupled properties: a change that raises accuracy may double latency or cost, and a change that reduces cost may weaken safety — measure only one and you optimize it into a regression elsewhere. Segmented (E) because aggregate metrics are averages, and averages hide concentrated harm — a system at 94% overall may be at 62% for one language or one high-value customer segment, invisible until that segment escalates. D (large sample) fixes statistical noise, not dimensional blindness. C (safety only for consumer-facing) is wrong — internal systems carry safety/security risk too (data leakage, prompt injection via ingested documents, harmful automation). A (once before launch, then on complaints) makes user complaints the detector — the slowest, most expensive, post-harm signal; behaviour, data, and usage all drift, so evaluation must be continuous. Blueprint: define evaluation metrics (accuracy, latency, cost, safety, security).",
+  "source": "CCAR-P Mock Exam (70Q)",
+  "select": 2
+ },
+ {
+  "id": "ccarp-38",
+  "domain_id": 4,
+  "type": "single",
+  "text": "A team wants to compare two system prompts for a summarization feature. Summaries have no single correct answer, and the qualities that matter are faithfulness to the source and usefulness to the reader. Which evaluation methodology is most appropriate?",
+  "options": [
+   {
+    "key": "A",
+    "text": "A mixed approach: programmatic checks for objective properties such as length limits and absence of fabricated entities, plus model-based grading against an explicit rubric, calibrated against a human-labelled subset."
+   },
+   {
+    "key": "B",
+    "text": "Exact string matching against reference summaries written by the team."
+   },
+   {
+    "key": "C",
+    "text": "Measure only average output length, since concise summaries are better."
+   },
+   {
+    "key": "D",
+    "text": "Ask the model that produced each summary to rate its own quality."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. Open-ended generation requires layered evaluation because different qualities are best measured by different instruments. Deterministic code is perfect for objective, checkable properties — length limits, required sections, whether every named entity appears in the source — and it's fast and free. Faithfulness and usefulness are judgment calls, so a model-based grader against an explicit rubric scales the assessment. The calibration clause completes the answer: you validate the grader against a human-labelled subset, because an uncalibrated automated judge produces confident numbers of unknown correspondence to human opinion. B (exact string matching) assumes one correct output — a summary can be excellent and share almost no character sequences with the reference. D (self-rating by the generating model) is systematically biased toward its own output. C (length only) ignores content entirely — a short summary that omits the key finding is worse than a longer one that captures it. Blueprint: design evaluation datasets and test frameworks using mixed methodologies.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-39",
+  "domain_id": 4,
+  "type": "single",
+  "text": "A team plans to A/B test a new prompt against the current one in production. Which experimental design flaw would most undermine the result?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Assigning users to variants at random rather than by geography."
+   },
+   {
+    "key": "B",
+    "text": "Deploying the new prompt to variant B while simultaneously upgrading variant B's model and increasing its retrieval depth."
+   },
+   {
+    "key": "C",
+    "text": "Running the test for two weeks rather than one."
+   },
+   {
+    "key": "D",
+    "text": "Measuring both task success rate and cost per request."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Correct: B. Changing three variables at once destroys attribution. If variant B performs better, you can't tell whether the prompt, the model upgrade, or the deeper retrieval is responsible — and if the changes interact, the individual effects may point in opposite directions, so you could ship a worse prompt because a model upgrade masked it. Controlled experiments isolate one variable; if multiple changes must be evaluated, they need separate arms or a factorial design. A (random assignment) is correct practice — assigning by geography would introduce confounds. C (two weeks vs one) generally improves statistical power and captures weekly seasonality — more defensible, not less. D (measuring both quality and cost) is sound multi-dimensional evaluation. Blueprint: conduct A/B testing and iterative improvements.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-40",
+  "domain_id": 4,
+  "type": "single",
+  "text": "A generation step costs more than budgeted. Profiling shows that 78% of input tokens come from a static instruction block and a fixed reference table sent identically on every request, and 22% from variable user content. Output tokens are modest. Which optimization has the greatest cost impact for the least quality risk?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Reduce the maximum output tokens."
+   },
+   {
+    "key": "B",
+    "text": "Compress the variable user content before sending it."
+   },
+   {
+    "key": "C",
+    "text": "Enable prompt caching on the static prefix so the repeated 78% is billed at the reduced cached rate rather than reprocessed on every call."
+   },
+   {
+    "key": "D",
+    "text": "Remove the reference table and rely on the model's general knowledge."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Correct: C. Optimization should target the largest cost component that can be reduced without losing information, and the profile hands you the answer: 78% of input tokens are byte-identical across requests. Caching that prefix means those tokens are written once and subsequently billed at a substantially reduced rate, with no content removed and therefore no quality risk — the model sees exactly the same input. It also reduces time-to-first-token as a bonus. The pairing of 'largest share' and 'identical every time' is the signal for caching. A (cap output) — output is modest, so the addressable saving is small, and capping risks truncation. D (delete the reference table) removes information the system was designed to use, trading correctness for cost — the opposite of least quality risk. B (compress the variable 22%) attacks the smaller share, and lossy compression of user content risks discarding the specifics the request depends on. Blueprint: optimize token usage, latency, and cost-performance trade-offs.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-41",
+  "domain_id": 4,
+  "type": "single",
+  "text": "A system that performed well at launch shows gradually declining user satisfaction over four months, while offline evaluation scores remain unchanged. What is the most probable explanation?",
+  "options": [
+   {
+    "key": "A",
+    "text": "The evaluation set is too large to be sensitive to changes."
+   },
+   {
+    "key": "B",
+    "text": "Users have become less tolerant of the same quality level."
+   },
+   {
+    "key": "C",
+    "text": "The model has degraded over time through repeated use."
+   },
+   {
+    "key": "D",
+    "text": "The production input distribution has drifted away from the fixed evaluation set, so the eval no longer represents real traffic."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Correct: D. The contradiction between stable offline scores and falling real-world satisfaction is the defining symptom of distribution drift. A static evaluation set measures performance on the world as it was when the set was built; production traffic moves — new products, changed customer language, seasonal patterns, new use cases users discover on their own. The system may genuinely still be excellent at what the eval measures and poor at what users now send. The remedy is to refresh the evaluation set from recent production traffic on a schedule and to monitor input characteristics directly so drift is visible before satisfaction falls. C (model degrades through use) is false — a deployed model is a fixed artifact; usage doesn't wear it out. B (shifting expectations) is a weak, unfalsifiable explanation for a steady four-month decline and conveniently locates the problem outside the system. A (eval too large) is backwards — larger sets are generally more sensitive; size isn't the issue, representativeness is. Blueprint: monitor system performance using logging and observability tools; design evaluation datasets.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-42",
+  "domain_id": 4,
+  "type": "single",
+  "text": "An agent completes its task successfully in 91% of evaluation runs. In the 9% of failures, the team observes no common pattern in the final output. Which diagnostic approach is most likely to identify the root cause?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Examine the full execution traces of failing runs — tool calls, arguments, results, and intermediate reasoning — and compare them against traces of successful runs on similar inputs."
+   },
+   {
+    "key": "B",
+    "text": "Replace the model with a larger one and re-measure."
+   },
+   {
+    "key": "C",
+    "text": "Increase the evaluation set size until a pattern emerges in the outputs."
+   },
+   {
+    "key": "D",
+    "text": "Re-run the failing cases with a higher temperature to see whether results improve."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. When failures share no visible pattern in the final output, the divergence happened earlier in the execution path. Traces expose where: a tool called with a malformed argument, a retrieval that returned nothing and was silently treated as empty rather than as an error, a loop that exhausted its budget, a reasoning step that made an unwarranted assumption. Comparing failing traces against successful traces on similar inputs is the key technique — it isolates the step at which the two diverge rather than leaving you to read traces in isolation. D (higher temperature) increases randomness; if some runs then succeed you've learned only that the failure is stochastic, not why, and you've made the system less predictable. C (more examples) produces more unexplained failures — volume doesn't substitute for visibility into intermediate state. B (swap the model) is a shot in the dark that may move the number without explaining it, and a larger model could intermittently mask a malformed tool argument, leaving a latent defect. Blueprint: diagnose system issues (prompt failure, hallucinations, model mismatch).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-43",
+  "domain_id": 4,
+  "type": "single",
+  "text": "A model-based grader (LLM-as-judge) is used to score answer quality at scale. Which practice most improves the trustworthiness of its scores?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Using the same model and prompt that generated the answers, for consistency."
+   },
+   {
+    "key": "B",
+    "text": "Defining an explicit rubric with concrete criteria and score anchors, and periodically measuring the grader's agreement with human raters on a held-out subset."
+   },
+   {
+    "key": "C",
+    "text": "Averaging scores across many runs at high temperature to reduce variance."
+   },
+   {
+    "key": "D",
+    "text": "Asking the grader for a single overall score from 1 to 10 with no further guidance."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Correct: B. A model-based grader is itself a measurement instrument, and instruments require specification and calibration. An explicit rubric with concrete criteria and score anchors — what distinguishes a 4 from a 5, with examples — converts a vague impression into a repeatable judgment and makes disagreements inspectable. Periodic agreement measurement against human raters is the calibration step: it tells you whether the grader's numbers actually track human judgment and catches drift when prompts or data change. Without it you have precise-looking scores of unknown validity. A (generating model/prompt as judge) introduces self-preference bias and shared blind spots — independence between generator and grader is desirable. D (unanchored 1-10) is the least reliable form of model grading — the scale means something different across runs and examples, with no way to audit a disagreement. C (average high-temperature runs) reduces variance around the grader's central tendency but does nothing about bias — a systematically wrong grader will be consistently, precisely wrong. Blueprint: design evaluation datasets and test frameworks using mixed methodologies.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-44",
+  "domain_id": 4,
+  "type": "single",
+  "text": "A summarization system occasionally introduces facts that do not appear in the source document. Which combination of measures most directly reduces this failure?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Increase temperature to encourage more creative summaries."
+   },
+   {
+    "key": "B",
+    "text": "Summarize the summary a second time to remove errors."
+   },
+   {
+    "key": "C",
+    "text": "Instruct the model to base every statement on the source and to state when information is absent; add an automated faithfulness check that verifies claims and entities against the source; and route low-scoring outputs to review."
+   },
+   {
+    "key": "D",
+    "text": "Increase the maximum output length so the model has room to be accurate."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Correct: C. Fabrication is best attacked in layers. At the prompt level, explicitly grounding the task and — critically — giving the model a legitimate way to say information is absent removes the pressure to always produce a complete summary implicitly rewarding invention. At the verification level, an automated faithfulness check that traces claims and named entities back to the source detects what the prompt didn't prevent. At the operational level, routing low-scoring outputs to human review contains the residual. Prevention, detection, and containment together — the standard pattern for a probabilistic failure mode. A (higher temperature) increases sampling diversity, raising the likelihood of unsupported content — 'creative' is the opposite of faithful. D (fabrication isn't caused by insufficient output space) — more room to write is more room to invent. B (a second summarization pass) has no access to the source at that point, so it can't distinguish invented from real content and will happily preserve and even reinforce the fabrication. Blueprint: diagnose system issues (prompt failure, hallucinations, model mismatch); implement guardrails.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-45",
+  "domain_id": 4,
+  "type": "multi",
+  "text": "A team must reduce the cost of a production Claude workload by 40% without a material quality regression. Select TWO approaches that are most consistent with disciplined optimization.",
+  "options": [
+   {
+    "key": "A",
+    "text": "Profile where tokens are actually consumed, then cache stable prefixes and eliminate redundant context that adds no measured value."
+   },
+   {
+    "key": "B",
+    "text": "Reduce the evaluation set size so that testing costs less."
+   },
+   {
+    "key": "C",
+    "text": "Disable logging and tracing to reduce infrastructure spend."
+   },
+   {
+    "key": "D",
+    "text": "Route simple requests to a smaller model and reserve the larger model for requests that evaluation shows genuinely require it."
+   },
+   {
+    "key": "E",
+    "text": "Cap all responses at 100 tokens regardless of the request."
+   }
+  ],
+  "answer": [
+   "A",
+   "D"
+  ],
+  "explanation": "Correct: A and D. Both are evidence-driven and preserve the ability to detect regression. Profiling first (A) separates optimization from guesswork — you find that a repeated prefix or an unused retrieved field dominates the bill, and you cache or remove it with no information loss. Tiered routing (D) exploits that request difficulty isn't uniform: most traffic is straightforward and doesn't need the largest model, and evaluation tells you where the boundary sits rather than intuition. Together they typically deliver large savings while leaving quality measurable. B (shrink the eval set) reduces your ability to detect the regression the requirement forbids, and saves trivial money since evaluation is a small fraction of production spend — cutting the instrument panel to save fuel. C (remove observability) destroys the diagnostic capability you most need while making cost/latency changes, and logging is a minor line item next to inference. E (blanket 100-token cap) is an indiscriminate quality cut that truncates any response legitimately requiring more, directly violating the no-material-regression constraint. Blueprint: optimize token usage, latency, and cost-performance trade-offs.",
+  "source": "CCAR-P Mock Exam (70Q)",
+  "select": 2
+ },
+ {
+  "id": "ccarp-46",
+  "domain_id": 5,
+  "type": "single",
+  "text": "A Claude-based assistant ingests customer-supplied documents and has tools that can send email and update CRM records. A security reviewer raises prompt injection as a concern. Which mitigation is most effective?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Use a larger model, which is more resistant to injection."
+   },
+   {
+    "key": "B",
+    "text": "Instruct the model in its system prompt to ignore any instructions found inside customer documents."
+   },
+   {
+    "key": "C",
+    "text": "Scan documents for the phrase \"ignore previous instructions\" and reject matches."
+   },
+   {
+    "key": "D",
+    "text": "Treat all ingested content as untrusted data — clearly delimit it from instructions, constrain tool permissions to the minimum required, and require confirmation or policy checks before any outbound or state-changing action."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Correct: D. Prompt injection is an architectural problem, not a prompting problem, because the model cannot reliably distinguish instructions from data when both arrive as text. The defensible answer assumes injection will sometimes succeed and limits what a successful injection can accomplish: delimiting untrusted content reduces the probability; constraining tool permissions bounds the blast radius; and gating outbound email and CRM writes behind confirmation or policy checks means the dangerous step — the one that causes harm outside the system — requires an authorization the injected instruction cannot supply. The combination of tool access and untrusted input is what makes this high risk. B (a system-prompt instruction) is a probabilistic defence against an adversary actively crafting text to defeat it — worth including as one layer, but relying on it alone makes your security boundary a suggestion. C (signature matching on a known phrase) is trivially evaded by rewording, encoding, translating, or splitting the payload. A (larger model) does not confer immunity — a more capable model may follow a sophisticated injected instruction more competently; capability is not a security control. Blueprint: identify risks, limitations, and failure modes of LLM systems; implement guardrails and safety controls.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-47",
+  "domain_id": 5,
+  "type": "single",
+  "text": "A healthcare provider wants a Claude application that summarizes patient records for clinicians. Which consideration must be resolved before the architecture is finalized?",
+  "options": [
+   {
+    "key": "A",
+    "text": "The regulatory basis for processing protected health information — deployment location and data residency, the business associate relationship, retention and logging of PHI, access controls, and the audit trail — established with legal and compliance before build."
+   },
+   {
+    "key": "B",
+    "text": "Whether the interface will be web-based or embedded in the EHR."
+   },
+   {
+    "key": "C",
+    "text": "How many clinicians will use the system in the first quarter."
+   },
+   {
+    "key": "D",
+    "text": "Which Claude model produces the most fluent summaries."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. In regulated domains, compliance constraints are architectural inputs, not features added later. Where the data may be processed and stored determines the deployment platform; the business associate relationship determines whether the processing is permissible at all; PHI retention and logging rules determine what your observability stack may capture (a design decision that is painful to retrofit); and access controls and audit trails shape the identity propagation model. Discovering any of these after the build means rework at best and an unlaunchable system at worst. D (fluency) is a quality attribute selected by evaluation once the compliant design space is known — it can't drive a decision that may be foreclosed by data-residency requirements. B (interface placement) is a legitimate design question but downstream of whether and where PHI may be processed. C (user volume) informs capacity and cost, not legal permissibility — a system that can't lawfully process PHI doesn't become acceptable at low volume. Blueprint: ensure compliance with regulations (e.g., GDPR, HIPAA, FedRAMP).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-48",
+  "domain_id": 5,
+  "type": "single",
+  "text": "A hiring-support tool uses Claude to summarize candidate applications and highlight relevant experience. Which governance measure most directly addresses fairness risk?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Adding a disclaimer to each summary stating that it was generated by AI."
+   },
+   {
+    "key": "B",
+    "text": "Evaluating outputs for systematic differences across demographic groups on matched candidate profiles, restricting the model's access to protected attributes and their close proxies, and documenting the assessment as part of a periodic review."
+   },
+   {
+    "key": "C",
+    "text": "Using the largest available model, which is more capable and therefore fairer."
+   },
+   {
+    "key": "D",
+    "text": "Requiring recruiters to read every summary before making a decision."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Correct: B. Fairness must be measured to be managed, and the measurement technique matters: comparing outputs across matched profiles that differ only in group membership isolates disparate treatment from legitimate differences in qualification. Restricting access to protected attributes and their proxies — names, addresses, graduation years, affiliations that correlate with protected characteristics — reduces the pathway by which bias enters. Documenting the assessment on a recurring schedule turns a one-time check into governance, which is what regulators and internal risk functions will ask to see (employment decisions are high-scrutiny in most jurisdictions). D (human review) is a valuable control but doesn't address bias in the summary itself — a recruiter reading a systematically skewed summary inherits the skew, and people under-correct for biased inputs presented as neutral analysis. C (capability and fairness are independent) — a more capable model can reproduce societal bias more articulately. A (disclosure) is a transparency measure that informs the reader without changing the content. Blueprint: address ethical AI considerations (bias, fairness, transparency).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-49",
+  "domain_id": 5,
+  "type": "multi",
+  "text": "An architect is documenting the failure modes of a proposed Claude system for a risk review. Select TWO failure modes that are inherent characteristics of LLM-based systems and must be designed for rather than eliminated.",
+  "options": [
+   {
+    "key": "A",
+    "text": "The system will exceed its monthly budget if usage grows."
+   },
+   {
+    "key": "B",
+    "text": "The system will fail if the network connection to the API is unavailable."
+   },
+   {
+    "key": "C",
+    "text": "The system may produce fluent, confident output that is factually incorrect."
+   },
+   {
+    "key": "D",
+    "text": "The system requires a valid API key to operate."
+   },
+   {
+    "key": "E",
+    "text": "The system may return different outputs for semantically identical inputs across runs."
+   }
+  ],
+  "answer": [
+   "C",
+   "E"
+  ],
+  "explanation": "Correct: C and E. Both are intrinsic to how language models work rather than defects to be patched. Fluent-but-wrong output (C) follows from a system that generates plausible continuations rather than retrieving verified facts; you manage it with grounding, citation, verification, and human review at the points where being wrong is costly. Non-determinism (E) follows from probabilistic sampling; you manage it by designing for tolerance — validating output against schemas, making downstream steps idempotent, and setting expectations that identical inputs need not produce identical text. Naming these honestly in a risk review distinguishes a credible architect from an optimistic one. B (network dependency) is an ordinary distributed-systems concern addressed with retries, timeouts, circuit breakers, and fallbacks — not specific to LLMs. A (budget overrun) is a cost-management issue handled with quotas, alerting, and rate limits — a consequence of usage, not a model behaviour. D (credential requirement) is a normal access-control property, not a failure mode. Blueprint: identify risks, limitations, and failure modes of LLM systems.",
+  "source": "CCAR-P Mock Exam (70Q)",
+  "select": 2
+ },
+ {
+  "id": "ccarp-50",
+  "domain_id": 5,
+  "type": "single",
+  "text": "A European retailer plans a Claude-based service that processes customer contact history to generate personalized recommendations. Which GDPR-related design decision is most material to the architecture?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Ensuring the model was trained only on European data."
+   },
+   {
+    "key": "B",
+    "text": "Translating the user interface into all supported European languages."
+   },
+   {
+    "key": "C",
+    "text": "Establishing the lawful basis and purpose limitation for the processing, and designing for data subject rights — access, rectification, erasure — including what personal data enters prompts, what is retained in logs, and for how long."
+   },
+   {
+    "key": "D",
+    "text": "Hosting the application behind a European domain name."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Correct: C. GDPR obligations translate into concrete architectural constraints. Lawful basis and purpose limitation determine whether contact history may be used for recommendations at all and bound what else it may be used for. Data subject rights are the part teams most often overlook in LLM systems: if a customer requests erasure, you must be able to find and remove their personal data wherever it landed — which includes prompt logs, trace data, evaluation datasets built from production traffic, and any caches. Designing logging and retention with that requirement in mind from the start is far cheaper than retrofitting deletion into an observability stack built to keep everything. B (localization) is a product/accessibility concern — GDPR governs personal data processing, not interface language. D (a domain name) has no legal significance for data protection; what matters is where processing occurs, under what basis, with what safeguards. A confuses a real concern (where this system's data is processed and stored) with an unrelated one (the geographic provenance of a foundation model's training corpus). Blueprint: ensure compliance with regulations (e.g., GDPR, HIPAA, FedRAMP).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-51",
+  "domain_id": 5,
+  "type": "single",
+  "text": "An agentic system can execute actions with real-world consequences: sending customer communications, issuing refunds, and modifying inventory. Which control design best balances autonomy with risk containment?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Allow full autonomy during business hours only."
+   },
+   {
+    "key": "B",
+    "text": "Allow full autonomy, with a daily report of all actions taken."
+   },
+   {
+    "key": "C",
+    "text": "Require human approval for every action the agent proposes."
+   },
+   {
+    "key": "D",
+    "text": "Tier actions by reversibility and blast radius — allow low-impact reversible actions autonomously, require approval for high-impact or irreversible ones, and enforce rate limits and value ceilings on the autonomous tier."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Correct: D. Autonomy should be granted in proportion to the cost of being wrong, and the two dimensions that determine that cost are reversibility and blast radius. An action that affects one record and can be undone in seconds doesn't warrant the same gate as an irreversible action affecting thousands. Tiering preserves the efficiency case for automation on the common low-impact path while placing a human at the points where errors are expensive or permanent. The rate limits and value ceilings are the essential backstop: they bound the damage from a systematic failure that produces many individually-approved-looking actions — the failure mode behind the most severe agentic incidents. C (approve everything) eliminates the automation benefit and, at volume, degrades into rubber-stamping. B (a daily report) is purely detective and arrives up to 24 hours late — refunds and communications can't be recalled once issued. A (business hours only) — time of day is unrelated to risk; a destructive action at 2 p.m. is exactly as destructive as at 2 a.m. Blueprint: implement guardrails and safety controls; apply human-in-the-loop validation strategies.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-52",
+  "domain_id": 5,
+  "type": "single",
+  "text": "A financial services client asks how the organization will demonstrate to regulators that its Claude-based advisory tool behaved appropriately on a specific past transaction. Which architectural capability is required?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Durable, tamper-evident audit records linking each interaction to the inputs, retrieved context, prompt and model versions, tool calls, output, and any human review — retained for the regulatory period."
+   },
+   {
+    "key": "B",
+    "text": "A copy of the model's training data."
+   },
+   {
+    "key": "C",
+    "text": "A statement from the model provider that the model is accurate."
+   },
+   {
+    "key": "D",
+    "text": "High availability across multiple regions."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. Regulatory defensibility requires reconstructing what the system did and why, for a specific interaction, potentially years later. That means capturing the full decision context — not just the output but the inputs, the retrieved passages that grounded it, the exact prompt and model versions in force at that moment, the tools invoked, and any human review or override. Version capture is the detail candidates most often miss: without it you cannot reproduce the behaviour, because the prompt has since changed. Tamper-evidence and retention aligned to the regulatory period complete the requirement. B (training data) is neither available nor relevant to what happened in one interaction — regulators ask what the system did with this customer's information on this date. C (a vendor assurance) is not evidence about a specific transaction; no provider statement substitutes for your own records of your own system's behaviour. D (multi-region availability) is a resilience property with no bearing on demonstrating past behaviour. Blueprint: ensure compliance with regulations; analyze observability challenges and select monitoring strategies at scale.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-53",
+  "domain_id": 5,
+  "type": "single",
+  "text": "A team proposes storing all production prompts and completions indefinitely in a general-purpose logging platform accessible to the whole engineering organization, to help with debugging. The system handles customer financial data. What is the most significant governance objection?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Storing completions will make the evaluation set easier to build."
+   },
+   {
+    "key": "B",
+    "text": "Prompts and completions will contain customer financial data, so the logging platform inherits the data's sensitivity and requires equivalent access control, retention limits, and deletion capability — broad access and indefinite retention are a data protection failure."
+   },
+   {
+    "key": "C",
+    "text": "Log storage costs will grow over time."
+   },
+   {
+    "key": "D",
+    "text": "Logs in a general-purpose platform may be harder to query than in a purpose-built tool."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Correct: B. The critical insight is that observability data for an LLM system is not metadata — the prompts and completions are the customer data, reproduced in full. That makes the logging platform a system of record for regulated financial information, so it must inherit every control that applies to the source: restricted access on a need-to-know basis rather than organization-wide, defined retention rather than indefinite, and the ability to locate and delete a specific customer's data on request. Broad engineering access to production financial data is also an access-control violation independent of retention, and the two together would likely fail an audit. C (storage cost) is real but minor and economic, not governance — it wouldn't block the design. D (queryability) is an ergonomics issue about how pleasant debugging is, not whether the arrangement is permissible. A names a genuine benefit — building evaluation sets from production traffic is good practice — but it must happen within the same access and retention controls; it isn't an objection. Blueprint: ensure compliance with regulations; analyze observability challenges.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-54",
+  "domain_id": 5,
+  "type": "single",
+  "text": "During design review of a medical triage support tool, a stakeholder asks how the system will handle questions outside its validated scope, such as a user describing symptoms of a possible emergency. What is the appropriate design response?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Return a generic error message for any input the system does not recognize."
+   },
+   {
+    "key": "B",
+    "text": "Log the request for later review and provide a best-effort answer in the meantime."
+   },
+   {
+    "key": "C",
+    "text": "Define explicit out-of-scope behaviour: recognize the condition, decline to advise, and route to the defined escalation path with clear urgent-care guidance — enforced with both prompt-level instruction and programmatic detection, and validated by evaluation."
+   },
+   {
+    "key": "D",
+    "text": "Allow the model to answer using its general medical knowledge, since it is broadly capable."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Correct: C. Scope boundaries in safety-critical domains must be designed, enforced, and tested rather than assumed. The design has three necessary parts: the system must recognize the out-of-scope condition, decline to give advice it isn't validated to give, and — crucially — take a positive action by routing to the escalation path with urgent-care guidance, because a bare refusal to someone describing emergency symptoms is itself a harm. Enforcing at both the prompt level and programmatically reflects that this is too important to rest on a probabilistic control, and validating with evaluation confirms the behaviour actually fires on realistic inputs. D (general capability is not clinical validation) — answering outside the validated scope in a medical context creates patient-safety risk and regulatory exposure regardless of how plausible the answer sounds. A (a generic error) abandons a user who may be in an emergency and fails to distinguish an unrecognized input from a recognized-but-urgent one. B ('best-effort answer' is precisely what must not happen here, and deferred logging means review arrives long after any harm) — this inverts the correct ordering: act safely now, review later. Blueprint: implement guardrails and safety controls; apply human-in-the-loop validation strategies.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-55",
+  "domain_id": 5,
+  "type": "single",
+  "text": "An organization is establishing governance for Claude systems across many teams. Which approach best balances consistency with delivery speed?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Require a central architecture board to review and approve every prompt change before deployment."
+   },
+   {
+    "key": "B",
+    "text": "Standardize on a single system prompt used by every team's application."
+   },
+   {
+    "key": "C",
+    "text": "Allow each team full autonomy and address problems as they arise."
+   },
+   {
+    "key": "D",
+    "text": "Publish shared standards — approved patterns, reusable guardrail components, evaluation requirements, and a risk-tiering rubric — and reserve central review for systems that the rubric classifies as high risk."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Correct: D. Effective governance scales by making the safe path the easy path. Publishing approved patterns, reusable guardrail components, and clear evaluation requirements lets most teams comply by default without waiting for anyone. A risk-tiering rubric then concentrates scarce central review where consequences justify it — systems touching regulated data, taking irreversible actions, or facing customers — so oversight is proportionate rather than uniform. This is risk-tiered human review applied at the organizational level. A (review every prompt change) creates a bottleneck that scales linearly with adoption and will be routed around as soon as it becomes painful — governance teams evade provides less real assurance. C (full autonomy with reactive correction) guarantees inconsistent controls and makes the first serious incident the discovery mechanism. B (a single shared system prompt across different applications) is not achievable — a fraud triage tool and an internal HR assistant have genuinely different tasks; sharing a module of common policy language is the workable version, which is a different thing. Blueprint: implement guardrails and safety controls; support lifecycle phases.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-56",
+  "domain_id": 6,
+  "type": "single",
+  "text": "A client opens a discovery session by saying, \"We want to use AI to improve customer service.\" What is the most effective next step for the architect?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Run structured discovery to establish the current process, its measurable pain points, what success would look like numerically, what constraints exist, and who owns the outcome."
+   },
+   {
+    "key": "B",
+    "text": "Propose a reference architecture for a customer service assistant based on similar past engagements."
+   },
+   {
+    "key": "C",
+    "text": "Request access to the client's ticketing system so the data can be analyzed immediately."
+   },
+   {
+    "key": "D",
+    "text": "Ask which Claude model the client would prefer to use."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. 'Improve customer service' is an aspiration, not a requirement. Structured discovery converts it into something buildable by establishing the current process and its actual failure points, a quantified definition of success (deflection rate, first-response time, CSAT — with a target), the constraints that bound the solution space (regulatory, data residency, systems that cannot be changed, budget), and crucially who owns the outcome and will make decisions. Skipping this is the most common cause of projects that deliver working software nobody adopts, because the team solved the problem they assumed rather than the one that exists. B (proposing an architecture first) imports assumptions from a different client's context and anchors the conversation on a solution, making it socially awkward for the client to reveal facts that would invalidate it. D (model selection) is a late, evaluation-driven decision that depends on requirements not yet known. C (data analysis) is valuable but premature, and requesting production data access before any purpose is established raises governance questions. Blueprint: conduct structured discovery and requirement gathering.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-57",
+  "domain_id": 6,
+  "type": "single",
+  "text": "An executive sponsor asks why the proposed system uses retrieval rather than \"just having the AI learn our documents.\" Which explanation is most effective for this audience?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Explain the mathematics of embedding spaces and vector similarity search."
+   },
+   {
+    "key": "B",
+    "text": "Explain that retrieval lets the assistant look up the current document at the moment of the question — so updates take effect immediately, answers can cite their source, and there is no retraining cost or delay when policies change."
+   },
+   {
+    "key": "C",
+    "text": "State that retrieval is the industry-standard approach for enterprise deployments."
+   },
+   {
+    "key": "D",
+    "text": "Explain that training a model on the documents is technically impossible."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Correct: B. Effective communication with a non-technical sponsor translates architecture into consequences the sponsor cares about, using an accurate mental model rather than a simplified-to-the-point-of-wrong one. 'Looks it up when asked' is both true and immediately intuitive, and it yields three business-relevant implications: changes take effect at once, answers are attributable to a source the business can verify, and there is no retraining cycle or cost each time policy changes. The sponsor can now evaluate the decision rather than merely defer to it. A (embedding mathematics) answers a question the sponsor didn't ask — correct but unusable information erodes confidence, since the sponsor concludes the architect can't explain the decision. C (an appeal to industry standard) is an argument from authority that gives the sponsor no basis for judgment and collapses the moment someone asks why it's standard. D is false — models can be trained on documents; winning an objection with an inaccurate claim is a credibility risk that one informed person in the room can unravel. Blueprint: communicate architectural decisions and trade-offs.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-58",
+  "domain_id": 6,
+  "type": "single",
+  "text": "Evaluation shows a proposed document classification system will be correct about 93% of the time. The business sponsor expects \"AI accuracy,\" which they describe as near-perfect. What is the most appropriate way to handle this expectation gap?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Delay the conversation until the system is in production and the sponsor observes the error rate directly."
+   },
+   {
+    "key": "B",
+    "text": "Report the system's accuracy on its best-performing category to build confidence."
+   },
+   {
+    "key": "C",
+    "text": "Present the 93% figure early alongside the current human baseline, the cost profile of each error type, and the design's containment measures — then agree an accuracy target and a review path as part of the SLA."
+   },
+   {
+    "key": "D",
+    "text": "Commit to 99% accuracy and treat closing the gap as an engineering problem to be solved later."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Correct: C. The gap is between an expectation and a measured reality, best closed with context rather than concealment or capitulation. The human baseline is the essential comparison — if the existing manual process is 89% accurate, 93% is an improvement rather than a shortfall, and sponsors routinely hold automated systems to a standard they never applied to people. Error-cost profiling reframes the discussion productively, since a 7% error rate concentrated in cheap, easily corrected cases is very different from 7% concentrated in expensive ones. Ending with an agreed target and review path in the SLA converts a vague expectation into a shared, measurable commitment. A (defer a known gap) guarantees the conversation happens at the worst moment — after launch, in front of an unhappy sponsor, with trust already damaged. B (presenting the best-performing slice as though it were overall performance) is misleading by selection; when the real number surfaces, credibility on every other claim goes with it. D (committing to a number you have no evidence you can reach) creates a contractual obligation on a hope. Blueprint: manage stakeholder feedback loops and expectation alignment (including SLAs).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-59",
+  "domain_id": 6,
+  "type": "multi",
+  "text": "An architect is preparing handoff documentation for the client's internal team, who will own the system after go-live. Select TWO items that are most essential to include.",
+  "options": [
+   {
+    "key": "A",
+    "text": "The personal contact details of each consultant who worked on the project."
+   },
+   {
+    "key": "B",
+    "text": "The evaluation suite and its baseline results, with instructions for running it and interpreting a regression."
+   },
+   {
+    "key": "C",
+    "text": "The rationale behind key architectural decisions, including options considered and why they were rejected."
+   },
+   {
+    "key": "D",
+    "text": "A transcript of every design meeting held during the engagement."
+   },
+   {
+    "key": "E",
+    "text": "A list of every Claude model available at the time of writing."
+   }
+  ],
+  "answer": [
+   "B",
+   "C"
+  ],
+  "explanation": "Correct: B and C. These are the two artifacts that determine whether the receiving team can safely change the system. The evaluation suite with baselines (B) is the safety net: without a way to run tests and recognize a regression, the new owners must either freeze the system or change it blind — both failure modes. Decision rationale including rejected options (C) prevents the most predictable post-handoff mistake — a new owner 'fixing' something that was a deliberate trade-off, then rediscovering the original problem the hard way. Recording why an option was rejected is what makes the document durable, because it answers the question the next engineer will actually have. D (raw meeting transcripts) is unfiltered volume — the signal it contains is exactly what C captures in usable form; the rest is noise that makes the documentation less likely to be read. E (a model catalogue) is public, freely available, and stale within months — documentation should record what your system does and why, not restate the vendor's product list. A (individual contact details) is not a support model — handoff should define a supported escalation path and ownership, which survives people changing jobs. Blueprint: document architectures and provide implementation guidance; support lifecycle phases.",
+  "source": "CCAR-P Mock Exam (70Q)",
+  "select": 2
+ },
+ {
+  "id": "ccarp-60",
+  "domain_id": 6,
+  "type": "single",
+  "text": "Three weeks into a build, the client's operations lead reveals a regulatory constraint requiring all customer data to remain within a specific jurisdiction — a constraint that invalidates the chosen deployment platform. What does this most clearly indicate about the engagement?",
+  "options": [
+   {
+    "key": "A",
+    "text": "The team should proceed and seek a compliance exception."
+   },
+   {
+    "key": "B",
+    "text": "The client's regulatory environment is unusually complex."
+   },
+   {
+    "key": "C",
+    "text": "The operations lead should have volunteered the information earlier."
+   },
+   {
+    "key": "D",
+    "text": "Discovery did not systematically surface regulatory and data residency constraints, and did not include all stakeholders who hold binding requirements."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Correct: D. Data residency is a standard discovery question, not an exotic one, and its absence points to a process failure the architect owns. Two things went wrong: the discovery checklist didn't systematically probe regulatory and data-location constraints, and the stakeholder map omitted someone who holds binding requirements. Constraints that can invalidate a platform choice must be gathered before that choice is made, which means identifying everyone with veto power — legal, compliance, security, operations — during discovery rather than encountering them mid-build. Treating this as a process defect is what prevents recurrence. C (blaming the stakeholder) is unproductive and misplaced — domain experts don't know which of the hundreds of facts they hold are architecturally significant; eliciting them is the architect's job, and a good process assumes stakeholders won't self-identify their constraints. B (framing an ordinary constraint as unusual complexity) avoids the lesson — jurisdictional data residency is common across financial services, healthcare, and the public sector. A (proceeding against a known constraint while hoping for an exception) is a serious governance failure — exceptions are granted before the fact by those authorized to grant them. Blueprint: conduct structured discovery and requirement gathering; support lifecycle phases.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-61",
+  "domain_id": 6,
+  "type": "single",
+  "text": "A client insists on an agentic architecture because a competitor announced one, although discovery shows their process is a fixed, well-understood five-step sequence. How should the architect respond?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Present the comparison on the client's own terms — what each option costs, how each performs, how each is tested and debugged — and recommend the workflow, while designing clear extension points should genuinely variable cases emerge."
+   },
+   {
+    "key": "B",
+    "text": "Build the agentic system as requested, since the client is paying and has stated a preference."
+   },
+   {
+    "key": "C",
+    "text": "Build the workflow but describe it as agentic in project documentation."
+   },
+   {
+    "key": "D",
+    "text": "Refuse the engagement on the grounds that the requested architecture is inappropriate."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. The architect's obligation is to inform the decision, not to win the argument or defer to it. Presenting cost, performance, testability, and debuggability in the client's own terms gives them a basis to choose, and clients who arrived at a preference through market signals usually update readily once the trade-offs are concrete. The extension-points clause is what makes this collaborative rather than dismissive: it acknowledges the client's underlying concern — that the process may not stay fixed — and designs for it, so the recommendation is not simply 'you are wrong.' B (build a known-inappropriate architecture without objection) abdicates the advisory role the client is paying for; when it costs more and proves harder to debug, the client will reasonably ask why nobody said so. D (refusal) is a disproportionate response to a disagreement that hasn't yet been discussed, and a failure of the influencing skill the role requires — architects routinely change minds by presenting evidence. C (misrepresenting what was built) is an integrity failure that also creates a concrete future problem: the documentation misleads whoever maintains the system, and the deception surfaces the moment anyone technical reads the code. Blueprint: communicate architectural decisions and trade-offs; manage stakeholder expectation alignment.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-62",
+  "domain_id": 6,
+  "type": "single",
+  "text": "A Claude system has been live for six months. Which practice best reflects sound lifecycle management in the operate-and-iterate phase?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Rebuilding on the newest available model each time one is released."
+   },
+   {
+    "key": "B",
+    "text": "Reviewing production monitoring and feedback on a defined cadence, refreshing the evaluation set from recent traffic, and running proposed changes through evaluation before deployment."
+   },
+   {
+    "key": "C",
+    "text": "Rewriting the system prompt monthly to keep it current."
+   },
+   {
+    "key": "D",
+    "text": "Leaving the system unchanged unless users report a defect, to avoid destabilizing a working deployment."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Correct: B. Operate-and-iterate is a disciplined cycle, not a state of rest or of constant churn. Reviewing monitoring and feedback on a cadence means quality problems are found by the team rather than reported by users. Refreshing the evaluation set from recent production traffic keeps the yardstick aligned with reality as usage drifts — a static eval slowly stops measuring anything relevant. Gating every proposed change through evaluation before deployment is what allows the system to improve without regressing, which is the balance the phase requires. D (wait for defect reports) makes users the monitoring system and ignores drift entirely — the world changes even when the code doesn't, so an untouched system degrades in effectiveness over time. A (reflexive adoption of every new model) is change without evidence — a model upgrade is a significant variable that should be evaluated against your own task before adoption, since newer doesn't automatically mean better for your workload, cost profile, or latency budget. C (a calendar-driven prompt rewrite) is change for its own sake — prompts should change in response to evaluation findings, not the month. Blueprint: support lifecycle phases (discovery, design, handoff, monitoring, iteration).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-63",
+  "domain_id": 6,
+  "type": "single",
+  "text": "An architect must define an SLA for a Claude-based system with an external client. Which set of commitments is most defensible?",
+  "options": [
+   {
+    "key": "A",
+    "text": "A guarantee that the system will produce correct answers 100% of the time."
+   },
+   {
+    "key": "B",
+    "text": "A commitment to always use the most advanced model available."
+   },
+   {
+    "key": "C",
+    "text": "Availability, latency percentiles, and a defined support and escalation process, with quality expressed as a measured accuracy target on an agreed evaluation set, reviewed on a stated cadence."
+   },
+   {
+    "key": "D",
+    "text": "A commitment that the system will never require human review."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Correct: C. A defensible SLA commits only to things that are measurable, controllable, and objectively verifiable by both parties. Availability and latency percentiles are standard and monitorable. The important nuance is how quality is expressed: not as a promise of correctness but as a target measured on an agreed evaluation set, which makes the commitment testable and gives both sides a shared definition of 'good.' The stated review cadence acknowledges that inputs and expectations evolve, providing a structured path to revisit the target rather than an argument later. A (guarantee 100% correctness) — no probabilistic system can guarantee it, and committing creates a term breached on day one, signalling to a sophisticated client that the architect misunderstands the technology. D (promising to eliminate human review) forecloses a control the design may require for high-risk actions, forcing the team to remove a safety mechanism to satisfy a contract. B ('most advanced available') commits to a moving target set by a third party, may conflict with cost/latency obligations in the same agreement, and confuses an input with an outcome. Blueprint: manage stakeholder feedback loops and expectation alignment (including SLAs).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-64",
+  "domain_id": 6,
+  "type": "single",
+  "text": "A pilot deployment succeeded, but adoption stalls after the general rollout: usage falls to 15% of eligible staff within a month. Investigation shows the system works as designed. What is the most likely gap?",
+  "options": [
+   {
+    "key": "A",
+    "text": "The model is not capable enough for real work."
+   },
+   {
+    "key": "B",
+    "text": "The system needs a more visually appealing interface."
+   },
+   {
+    "key": "C",
+    "text": "Staff need to be instructed by management to use the system."
+   },
+   {
+    "key": "D",
+    "text": "Change management and workflow integration — users were not brought into the design, the tool sits outside their existing workflow, and no one has addressed what the change means for how they work."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Correct: D. When a system works as designed but nobody uses it, the failure is in adoption rather than engineering. Two causes dominate. First, workflow fit: a tool that requires leaving the application where the work actually happens imposes a switching cost that outweighs its benefit for most tasks, regardless of quality. Second, change management: users who weren't consulted during design have no ownership of the outcome, may not understand what the tool is for, and often carry unaddressed concerns about what it means for their role. Both are the architect's concern, because lifecycle management extends past deployment into realized value. A (capability) — the scenario states the system works and the pilot succeeded, so capability is the one thing demonstrated. B (visual polish) rarely drives adoption on its own and is a shallow diagnosis when workflow placement and change management are unexamined. C (mandated usage) produces compliance behaviour rather than value — people open the tool, do the minimum, and continue as before, and it suppresses the feedback signal since the usage metric no longer reflects genuine utility. Blueprint: support lifecycle phases; manage stakeholder feedback loops and expectation alignment.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-65",
+  "domain_id": 6,
+  "type": "single",
+  "text": "A client asks the architect to quantify the cost of a proposed Claude system before the design is finalized. Which response is most professional and useful?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Provide a modelled range based on expected request volume, estimated tokens per request, and candidate model pricing — stating the assumptions explicitly, identifying which are most uncertain, and committing to refine the estimate after prototype measurement."
+   },
+   {
+    "key": "B",
+    "text": "Provide the lowest plausible figure to keep the project viable."
+   },
+   {
+    "key": "C",
+    "text": "Provide the highest plausible figure so that actual costs compare favourably."
+   },
+   {
+    "key": "D",
+    "text": "Decline to estimate until the design is complete and measured."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. Clients need a number to plan against, and architects can supply one honestly by modelling from the drivers — volume, tokens per request, model pricing — and being explicit about the assumptions underneath. Stating a range rather than a point communicates real uncertainty, flagging which assumptions are most uncertain tells the client where the risk sits and what would narrow it, and committing to refine after prototype measurement gives a defined path to a firmer figure. This is how a professional handles a question they can't yet answer precisely. D (refusing to estimate) is unhelpful and leaves the client unable to plan or secure budget — uncertainty is a reason to qualify an estimate, not to withhold one. B (deliberate underestimation to secure approval) is a form of misrepresentation and reliably produces the worst downstream conversation when actual costs arrive. C (padding to guarantee a favourable comparison) is equally dishonest and may kill a viable project outright, or damage credibility when the client benchmarks the figure elsewhere. Blueprint: communicate architectural decisions and trade-offs; manage stakeholder expectation alignment.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-66",
+  "domain_id": 7,
+  "type": "single",
+  "text": "An engineering organization is rolling out Claude Code across twelve teams working in a shared monorepo. Each team has different testing commands, code standards, and review conventions. What configuration approach best supports consistent, effective use?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Require every engineer to paste their team's conventions into each session manually."
+   },
+   {
+    "key": "B",
+    "text": "Commit project-level configuration to the repository — repository-wide context at the root and team- or directory-scoped configuration in the relevant subdirectories — so conventions load automatically based on where work happens."
+   },
+   {
+    "key": "C",
+    "text": "Maintain a shared wiki page documenting conventions and ask engineers to consult it."
+   },
+   {
+    "key": "D",
+    "text": "Standardize all twelve teams on identical testing commands and conventions."
+   }
+  ],
+  "answer": [
+   "B"
+  ],
+  "explanation": "Correct: B. Configuration that lives in the repository is version-controlled, reviewed like code, and — most importantly — applied automatically rather than depending on each engineer remembering. The hierarchical arrangement matches the actual structure of the problem: organization-wide standards at the root and team-specific conventions scoped to the directories that team owns, so an engineer working in any part of the monorepo gets the right context without configuring anything. Conventions also stay correct over time, because they're updated in the same pull request as the change that alters them. A (manual pasting) is unreliable at any scale, wastes context every session, and drifts immediately — engineers paste whatever version they last copied. C (a wiki) documents conventions for humans but doesn't supply them to the tool, and decays since nothing forces an update when the build commands change. D (forcing twelve teams onto identical conventions) is an organizational upheaval to solve a configuration problem, and the differences may be legitimate — a data pipeline team and a frontend team have genuinely different testing needs. Blueprint: configure Claude tools and environments for teams (e.g., Claude Code).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-67",
+  "domain_id": 7,
+  "type": "single",
+  "text": "A team wants an AI-assisted workflow that automatically runs the linter and type checker after each code edit, blocking the change if either fails. Which mechanism is designed for this?",
+  "options": [
+   {
+    "key": "A",
+    "text": "A scheduled nightly job that lints the whole repository."
+   },
+   {
+    "key": "B",
+    "text": "Manually running the linter after each session."
+   },
+   {
+    "key": "C",
+    "text": "A deterministic hook that executes on the edit event and enforces the checks programmatically, independent of the model's judgment."
+   },
+   {
+    "key": "D",
+    "text": "Adding a note to the system prompt asking the assistant to remember to lint."
+   }
+  ],
+  "answer": [
+   "C"
+  ],
+  "explanation": "Correct: C. The requirement contains the words 'automatically' and 'blocking,' which together demand a deterministic enforcement point rather than a probabilistic one. A hook fires on a defined edit event and either passes or fails, so the guarantee holds on every edit regardless of what the model decides to do. This is a general principle worth internalizing: when a rule must always hold, implement it in code and place it in the execution path; reserve prompt instructions for guidance where occasional deviation is tolerable. D (a prompt-level reminder) is a request, not an enforcement, and will fail exactly when the session is long or complex — which is when it matters most. B (manual execution) is neither automatic nor blocking, and relies on the engineer remembering after the work feels finished. A (a nightly job) detects problems up to a day after they're introduced, by which time the change may be merged and built upon, and it cannot block — so it fails the stated requirement outright. Blueprint: improve developer workflows using AI-assisted tooling.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-68",
+  "domain_id": 7,
+  "type": "single",
+  "text": "An on-call engineer is debugging an intermittent production failure in a Claude-powered service. Which practice most improves the effectiveness of AI-assisted debugging?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Describing the symptom in general terms and asking for likely causes."
+   },
+   {
+    "key": "B",
+    "text": "Asking the assistant to rewrite the affected module from scratch."
+   },
+   {
+    "key": "C",
+    "text": "Increasing the assistant's context window setting to the maximum available."
+   },
+   {
+    "key": "D",
+    "text": "Providing the concrete evidence — the failing session trace, the exact error output, the relevant configuration, and what distinguishes failing runs from passing ones — and asking for hypotheses ranked by how they can be tested."
+   }
+  ],
+  "answer": [
+   "D"
+  ],
+  "explanation": "Correct: D. AI-assisted debugging is bounded by the evidence supplied. Concrete artifacts — the actual trace, the verbatim error, the configuration in force, and the contrast between failing and passing runs — let the assistant reason about the specific system rather than about systems in general. Asking for hypotheses ranked by testability is the second half of the technique: it produces a diagnostic plan you can execute in order, which matters under on-call pressure where an intermittent failure gives limited reproduction opportunities. A (a general symptom description) yields a general list of common causes, most of which don't apply — it reads as productive while advancing the investigation very little. B (rewriting the module) without understanding the failure may coincidentally remove the bug or preserve it in new code, and either way takes a large, unreviewed change into production during an incident — and you learn nothing, so recurrence is likely. C (context capacity) is not the constraint; the absence of relevant information is — a larger window with no evidence in it is still empty. Blueprint: support debugging and operational issue resolution.",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-69",
+  "domain_id": 7,
+  "type": "single",
+  "text": "A platform team wants to make an internal deployment runbook — its steps, safety checks, environment-specific parameters, and helper scripts — available to engineers through their AI tooling, without every engineer configuring it individually. Which packaging approach is most appropriate?",
+  "options": [
+   {
+    "key": "A",
+    "text": "Package it as a shared Skill committed to the repository, so it is version-controlled, discovered automatically, and loaded only when a deployment task is underway."
+   },
+   {
+    "key": "B",
+    "text": "Add the full runbook to the system prompt of every internal tool."
+   },
+   {
+    "key": "C",
+    "text": "Email the runbook to all engineers and ask them to paste relevant sections when needed."
+   },
+   {
+    "key": "D",
+    "text": "Have each engineer maintain a personal copy adapted to their own preferences."
+   }
+  ],
+  "answer": [
+   "A"
+  ],
+  "explanation": "Correct: A. The scenario describes exactly what Skills package: procedural instructions plus reference parameters plus executable helper scripts, bundled as one unit. Committing it to the repository makes it shared by default and version-controlled, so a change to the deployment process is reviewed and propagates to everyone at once. Automatic discovery removes per-engineer configuration, and on-demand loading means the runbook consumes no context for the overwhelming majority of sessions that have nothing to do with deployment. C (email distribution) guarantees version drift the moment the runbook changes, and manual pasting is exactly the per-engineer effort the requirement excludes. B (embedding the full runbook in every internal tool's system prompt) imposes its context cost on all work universally, and collapses entirely once the team has a dozen such runbooks. D (personal adapted copies) produces as many versions of the deployment process as there are engineers — the worst possible outcome for a procedure whose safety checks exist to prevent production incidents. Blueprint: configure Claude tools and environments for teams; implement prompt reuse strategies (Skills).",
+  "source": "CCAR-P Mock Exam (70Q)"
+ },
+ {
+  "id": "ccarp-70",
+  "domain_id": 7,
+  "type": "multi",
+  "text": "An organization is measuring whether AI-assisted development tooling is delivering value. Select TWO measurement approaches that provide meaningful signal.",
+  "options": [
+   {
+    "key": "A",
+    "text": "Measuring the number of prompts submitted per engineer per day."
+   },
+   {
+    "key": "B",
+    "text": "Counting the number of lines of code generated by the assistant."
+   },
+   {
+    "key": "C",
+    "text": "Requiring each engineer to report the hours they believe the assistant saved them."
+   },
+   {
+    "key": "D",
+    "text": "Tracking delivery outcomes such as cycle time, change failure rate, and time to restore, compared against a pre-adoption baseline."
+   },
+   {
+    "key": "E",
+    "text": "Combining outcome metrics with structured developer feedback on where the tooling helps and where it creates rework."
+   }
+  ],
+  "answer": [
+   "D",
+   "E"
+  ],
+  "explanation": "Correct: D and E. Value should be measured at the level of outcomes the business cares about, and delivery metrics benchmarked against a pre-adoption baseline (D) do that — cycle time, change failure rate, and time to restore capture whether work is actually shipping faster and more safely, and the baseline is what makes the comparison meaningful. Pairing those with structured developer feedback (E) supplies the causal story the numbers lack: where the tooling genuinely helps, and where it produces code that looks fine but generates rework downstream. Quantitative and qualitative together prevent both blind spots. B (lines of code) is a discredited productivity proxy and actively perverse for AI tooling — generating more code is often the failure mode, since verbose or duplicated code raises maintenance cost. A (prompt volume) measures activity, not value — high prompt counts may equally indicate the tooling is working well or that engineers are struggling to get a usable result. C (self-reported time savings) is subject to well-documented estimation bias in both directions, can't be validated, and creates an incentive to justify the tool's cost, contaminating the data. Blueprint: improve developer workflows using AI-assisted tooling.",
+  "source": "CCAR-P Mock Exam (70Q)",
+  "select": 2
+ }
+]

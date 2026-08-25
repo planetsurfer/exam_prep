@@ -1,0 +1,316 @@
+[
+  {
+    "id": "pro-1.1",
+    "domain": "Solution Design & Architecture",
+    "domain_id": 1,
+    "weight": 17,
+    "type": "single",
+    "text": "A logistics company wants Claude to process inbound freight quotes. Every request follows the same steps: extract shipment details from an email, validate them against a rate card, and generate a quote document. Requirements are stable and the steps never vary. Which architectural pattern is most appropriate?",
+    "options": [
+      {"key": "A", "text": "A multi-agent system with a supervisor agent delegating to specialist agents"},
+      {"key": "B", "text": "A fixed workflow where each step is a discrete, sequenced LLM call"},
+      {"key": "C", "text": "An autonomous agent with tool access that plans its own approach per request"},
+      {"key": "D", "text": "A single monolithic prompt containing all instructions and the full rate card"}
+    ],
+    "answer": ["B"],
+    "explanation": "The task is stable, repeatable, and fully known in advance — the textbook case for a fixed workflow, which gives predictability, per-step auditability, and easy debugging. The multi-agent option adds coordination overhead the problem doesn't need, the autonomous agent adds planning overhead the problem doesn't need, and the monolithic prompt sacrifices step-level control and validation."
+  },
+  {
+    "id": "pro-1.2",
+    "domain": "Solution Design & Architecture",
+    "domain_id": 1,
+    "weight": 17,
+    "type": "single",
+    "text": "A consultancy is building a research assistant that must investigate open-ended client questions. The steps required vary enormously between requests: some need three web searches, others need document analysis, calculations, and follow-up queries whose necessity only becomes clear mid-task. Which pattern best fits?",
+    "options": [
+      {"key": "A", "text": "A fixed workflow with a generous number of pre-defined steps to cover most cases"},
+      {"key": "B", "text": "A router that classifies each request into one of five pre-built pipelines"},
+      {"key": "C", "text": "A batch process that runs every possible analysis on every request and discards unused output"},
+      {"key": "D", "text": "An autonomous agent that plans, acts, observes results, and decides its next step in a loop"}
+    ],
+    "answer": ["D"],
+    "explanation": "When the path to the answer only emerges during execution, an autonomous plan–act–observe loop is the pattern designed for it. A fixed workflow assumes the steps can be enumerated in advance, a router still requires the path to be known up front, and a batch process running every possible analysis is wasteful and still can't follow up on intermediate findings."
+  },
+  {
+    "id": "pro-1.3",
+    "domain": "Solution Design & Architecture",
+    "domain_id": 1,
+    "weight": 17,
+    "type": "single",
+    "text": "A single prompt asks Claude to read a 60-page RFP, assess compliance against 40 internal policies, score the opportunity, and draft a go/no-go recommendation. Output quality is inconsistent: some policies are skipped and the scoring rationale is shallow. The team has already refined the prompt wording twice. What is the most effective next step?",
+    "options": [
+      {"key": "A", "text": "Move to the largest available model and increase the maximum output tokens"},
+      {"key": "B", "text": "Add more few-shot examples of well-written go/no-go recommendations to the existing prompt"},
+      {"key": "C", "text": "Decompose the task into sequenced subtasks (extract, assess per policy group, score, then synthesise), passing structured output between steps"},
+      {"key": "D", "text": "Lower the temperature so the model follows the instructions more deterministically"}
+    ],
+    "answer": ["C"],
+    "explanation": "The failure signature — skipped items and shallow reasoning on a long, multi-part task — is a decomposition problem. Sequenced subtasks let each step receive focused context and produce verifiable intermediate output. Moving to the largest model treats capacity as the issue when structure is, adding few-shot examples adds guidance where structure is the gap, and lowering temperature affects randomness, not coverage."
+  },
+  {
+    "id": "pro-1.4",
+    "domain": "Solution Design & Architecture",
+    "domain_id": 1,
+    "weight": 17,
+    "type": "single",
+    "text": "A claims-processing solution uses four specialist agents: intake, fraud screening, policy validation, and payout calculation. The business requires a complete, ordered audit trail of every decision, and later agents must not run if an earlier agent flags an exception. Which orchestration strategy best satisfies these requirements?",
+    "options": [
+      {"key": "A", "text": "A supervisor/orchestrator that invokes each specialist in sequence, records outcomes, and halts the chain on an exception"},
+      {"key": "B", "text": "Peer-to-peer handoffs where each agent decides which agent to invoke next"},
+      {"key": "C", "text": "Running all four agents in parallel and merging their outputs at the end"},
+      {"key": "D", "text": "A shared message board that all agents monitor and respond to opportunistically"}
+    ],
+    "answer": ["A"],
+    "explanation": "A supervisor gives central sequencing, a single point to record the ordered audit trail, and the ability to halt on exception — all three stated requirements. Peer-to-peer handoffs make ordering and halting emergent rather than guaranteed, parallel execution violates the requirement that later stages not run after a flag, and a shared message board leaves sequencing and exception handling to chance rather than guarantee."
+  },
+  {
+    "id": "pro-1.5",
+    "domain": "Solution Design & Architecture",
+    "domain_id": 1,
+    "weight": 17,
+    "type": "single",
+    "text": "An executive sponsor wants to “put AI across the whole business” and asks the architect to propose the first project. Twelve candidate use cases have been suggested by different departments. What should most strongly drive the selection of the initial use case?",
+    "options": [
+      {"key": "A", "text": "Choosing the use case that showcases the most advanced agentic capabilities"},
+      {"key": "B", "text": "Selecting the department with the most enthusiastic stakeholders to guarantee adoption"},
+      {"key": "C", "text": "Measurable business value (e.g. cost, efficiency, or an SLA improvement) combined with feasible data access and manageable risk"},
+      {"key": "D", "text": "Whichever use case can go live fastest, regardless of impact, to build momentum"}
+    ],
+    "answer": ["C"],
+    "explanation": "First projects should be selected on measurable value pillars balanced against feasibility and risk — that's what builds durable organisational support. Showcasing the most advanced agentic capabilities optimises for spectacle, selecting the most enthusiastic department optimises for politics, and going live fastest regardless of impact optimises for speed over demonstrable value."
+  },
+  {
+    "id": "pro-1.6",
+    "domain": "Solution Design & Architecture",
+    "domain_id": 1,
+    "weight": 17,
+    "type": "single",
+    "text": "A document-triage solution has been in production for three months. The team has latency and cost dashboards but no way of knowing whether the model's classifications are actually correct in production. Which architectural addition most directly closes this gap?",
+    "options": [
+      {"key": "A", "text": "A larger model, since classification accuracy generally improves with model capability"},
+      {"key": "B", "text": "An alert that fires whenever daily token consumption deviates from the norm"},
+      {"key": "C", "text": "A weekly review of the system prompt to check the instructions are still current"},
+      {"key": "D", "text": "A feedback loop: capture downstream corrections and user signals, and route a sample of production outputs into a labelled evaluation set"}
+    ],
+    "answer": ["D"],
+    "explanation": "The missing architectural element is the feedback stage of the input→processing→output→feedback loop: production correctness signals flowing back into an evaluable dataset. Switching to a larger model changes the model without measuring anything, a token-consumption alert monitors cost, not correctness, and a weekly system prompt review monitors configuration, not correctness."
+  },
+  {
+    "id": "pro-1.7",
+    "domain": "Solution Design & Architecture",
+    "domain_id": 1,
+    "weight": 17,
+    "type": "single",
+    "text": "A retailer's product catalogue, pricing, and promotions change daily. The team wants Claude to answer customer questions using this information and is debating how to give the model access to it. Which approach is most appropriate?",
+    "options": [
+      {"key": "A", "text": "Fine-tune a model on the current catalogue and repeat the process each quarter"},
+      {"key": "B", "text": "Augment the model with retrieval over the live catalogue so answers reflect current data"},
+      {"key": "C", "text": "Paste the full catalogue into every request's context window"},
+      {"key": "D", "text": "Rely on the base model's knowledge and add a disclaimer that prices may vary"}
+    ],
+    "answer": ["B"],
+    "explanation": "Daily-changing factual data is the canonical case for retrieval augmentation — the model always answers from current data without retraining. Fine-tuning on the current catalogue is stale within days, pasting the full catalogue into every request is costly and won't scale with catalogue size, and relying on the base model's knowledge simply accepts wrong answers."
+  },
+  {
+    "id": "pro-1.8",
+    "domain": "Solution Design & Architecture",
+    "domain_id": 1,
+    "weight": 17,
+    "type": "single",
+    "text": "A single “operations agent” handles HR queries, IT tickets, and finance requests. It has 35 tools, a 6,000-token system prompt covering all three domains, and its tool-selection accuracy has been declining as capabilities were added. Stakeholders want to add procurement next. What is the strongest architectural recommendation?",
+    "options": [
+      {"key": "A", "text": "Split the agent into domain-specific agents behind a router or supervisor, each with a focused toolset and prompt"},
+      {"key": "B", "text": "Add the procurement tools now and plan a prompt rewrite in the next quarter"},
+      {"key": "C", "text": "Keep one agent but double the system prompt length so every domain is covered in more detail"},
+      {"key": "D", "text": "Force the model to use a tool on every request so it stops answering from general knowledge"}
+    ],
+    "answer": ["A"],
+    "explanation": "Declining tool selection as breadth grows is the classic signal that one agent is overloaded. Domain-specific agents behind a router restore focused prompts and toolsets, and make procurement an addition rather than a further burden. Adding the procurement tools now compounds the problem, doubling the system prompt length makes the prompt harder to follow, not easier, and forcing tool use on every request misdiagnoses the failure."
+  },
+  {
+    "id": "pro-1.9",
+    "domain": "Solution Design & Architecture",
+    "domain_id": 1,
+    "weight": 17,
+    "type": "multi",
+    "select": 2,
+    "text": "An architect is deciding between a fixed workflow and an autonomous agent for a new solution. Which TWO characteristics of the problem most strongly favour the fixed workflow?",
+    "options": [
+      {"key": "A", "text": "Inputs arrive in unpredictable formats requiring dynamic handling"},
+      {"key": "B", "text": "The processing steps are known in advance and are the same for every request"},
+      {"key": "C", "text": "The task benefits from creative exploration of multiple solution paths"},
+      {"key": "D", "text": "The business requires each step to be individually auditable and reproducible"},
+      {"key": "E", "text": "The team wants the model to recover autonomously from unexpected tool failures"}
+    ],
+    "answer": ["B", "D"],
+    "explanation": "Fixed workflows shine when steps are known and identical per request, and when auditability and reproducibility of each step matter. Unpredictable input formats requiring dynamic handling are a condition favouring agentic autonomy, creative exploration of multiple solution paths rewards dynamic planning, not fixed sequencing, and autonomous recovery from unexpected tool failures calls for the opposite of a fixed sequence."
+  },
+  {
+    "id": "pro-1.10",
+    "domain": "Solution Design & Architecture",
+    "domain_id": 1,
+    "weight": 17,
+    "type": "multi",
+    "select": 2,
+    "text": "A team is assessing whether a complex due-diligence task justifies a multi-agent design instead of a single augmented agent. Which TWO characteristics of the task most strongly indicate that multiple agents are warranted?",
+    "options": [
+      {"key": "A", "text": "The overall request volume is expected to be very high"},
+      {"key": "B", "text": "The project budget is large enough to afford multiple agents"},
+      {"key": "C", "text": "Distinct sub-tasks require different specialisations, tools, and context that would overload a single agent"},
+      {"key": "D", "text": "Stakeholders have asked for the most sophisticated architecture available"},
+      {"key": "E", "text": "Several sub-tasks are independent and can run in parallel to reduce end-to-end time"}
+    ],
+    "answer": ["C", "E"],
+    "explanation": "Multi-agent designs earn their complexity when sub-tasks need genuinely different specialisations, tools, and context, and when independent sub-tasks can run in parallel. High request volume is a scaling concern solvable within any pattern, a large budget is a budget fact, not an architectural driver, and stakeholder demand for the most sophisticated architecture is prestige, not an architectural driver."
+  },
+  {
+    "id": "pro-1.11",
+    "domain": "Solution Design & Architecture",
+    "domain_id": 1,
+    "weight": 17,
+    "type": "matching",
+    "text": "For each scenario, identify the most appropriate architectural pattern. Choose from: single augmented LLM call, fixed workflow, autonomous agent, or multi-agent system.",
+    "options": ["single augmented LLM call", "fixed workflow", "autonomous agent", "multi-agent system"],
+    "items": [
+      "Summarising each inbound support email into a CRM note, with retrieval of the customer's account record for context.",
+      "A monthly compliance report generated through the same five steps every time: gather, validate, analyse, format, distribute.",
+      "Investigating a production incident where the diagnostic path depends entirely on what each log query reveals.",
+      "A merger review requiring legal, financial, and technical assessments, each needing its own tools and specialist context, coordinated into one recommendation.",
+      "Translating each incoming document into English with a glossary of approved terminology supplied as context."
+    ],
+    "answer": ["single augmented LLM call", "fixed workflow", "autonomous agent", "multi-agent system", "single augmented LLM call"],
+    "explanation": "Scenarios 1 and 5 are single transformations with supplied context — one augmented call each. Scenario 2 is a stable, repeating sequence — a workflow. Scenario 3's path depends on what each step reveals — an autonomous agent. Scenario 4 needs distinct specialists coordinated into one output — multi-agent."
+  },
+  {
+    "id": "pro-2.1",
+    "domain": "Claude Models, Prompting & Context Engineering",
+    "domain_id": 2,
+    "weight": 13,
+    "type": "single",
+    "text": "A ticket-routing system classifies 400,000 short messages per day into eight categories. Accuracy on a labelled test set is comparable across the model family, and the business is sensitive to both latency and cost. Which model strategy is most defensible?",
+    "options": [
+      {"key": "A", "text": "Use the most capable model, since classification errors are always more expensive than compute"},
+      {"key": "B", "text": "Use the mid-tier model as a compromise, avoiding the need for evaluation"},
+      {"key": "C", "text": "Use the smallest model that meets the accuracy target, and validate the choice with ongoing evaluation"},
+      {"key": "D", "text": "Alternate randomly between models to average out their weaknesses"}
+    ],
+    "answer": ["C"],
+    "explanation": "When accuracy is comparable across models, the disciplined choice at 400k requests/day is the smallest model that meets the target — provided ongoing evaluation confirms it keeps meeting it. Using the most capable model substitutes assumption for measurement, defaulting to the mid-tier avoids the evaluation that should drive the choice, and alternating randomly between models makes behaviour unpredictable and undebuggable."
+  },
+  {
+    "id": "pro-2.2",
+    "domain": "Claude Models, Prompting & Context Engineering",
+    "domain_id": 2,
+    "weight": 13,
+    "type": "single",
+    "text": "An application prepends the current timestamp and a request ID to the top of its system prompt, followed by 9,000 tokens of static policy content, then the user's message. Prompt caching is enabled but the cache hit rate is near zero. What is the most likely cause?",
+    "options": [
+      {"key": "A", "text": "The dynamic values at the start of the prompt change the prefix on every request, so no cached prefix can ever match"},
+      {"key": "B", "text": "The policy content is too long to be eligible for caching"},
+      {"key": "C", "text": "Prompt caching only applies to user messages, not system prompts"},
+      {"key": "D", "text": "The cache is being evicted because the application sends requests too frequently"}
+    ],
+    "answer": ["A"],
+    "explanation": "Caching matches on the prompt prefix. A timestamp and request ID at position zero make every prefix unique, so nothing can ever hit; moving dynamic values after the static block restores cacheability. The length of the policy content is not a real caching restriction, caching is not limited to user messages, and request frequency wouldn't zero the hit rate."
+  },
+  {
+    "id": "pro-2.3",
+    "domain": "Claude Models, Prompting & Context Engineering",
+    "domain_id": 2,
+    "weight": 13,
+    "type": "single",
+    "text": "A team applies chain-of-thought prompting uniformly across their platform. It has improved a complex contract-analysis feature but a simple field-extraction endpoint is now slower and more expensive with no measurable accuracy gain. What should the architect conclude?",
+    "options": [
+      {"key": "A", "text": "Chain-of-thought should be removed platform-wide since it doubles token usage"},
+      {"key": "B", "text": "The extraction endpoint needs a longer chain-of-thought prompt to see the benefit"},
+      {"key": "C", "text": "Chain-of-thought only works on the largest model in the family"},
+      {"key": "D", "text": "Chain-of-thought adds value on multi-step reasoning tasks but adds cost and latency without benefit on simple extraction; apply it selectively"}
+    ],
+    "answer": ["D"],
+    "explanation": "Chain-of-thought earns its tokens on multi-step reasoning; on simple extraction it adds cost and latency for nothing. Techniques should be applied per-task based on measured benefit. Removing it platform-wide throws away a proven gain on contract analysis, a longer chain-of-thought prompt doubles down where there's no benefit, and the claim that it only works on the largest model is false."
+  },
+  {
+    "id": "pro-2.4",
+    "domain": "Claude Models, Prompting & Context Engineering",
+    "domain_id": 2,
+    "weight": 13,
+    "type": "single",
+    "text": "A system prompt contains a critical rule (“never quote internal pricing”) buried in the middle of 12,000 tokens of product context. The rule is followed inconsistently. Rewording it has not helped. Which change is most likely to improve adherence?",
+    "options": [
+      {"key": "A", "text": "Repeat the rule verbatim after every paragraph of product context"},
+      {"key": "B", "text": "Move the critical rule to the beginning or end of the prompt and separate rules from reference content with clear structure"},
+      {"key": "C", "text": "Reduce the temperature to zero so the model behaves deterministically"},
+      {"key": "D", "text": "Switch the rule to upper case so the model treats it as higher priority"}
+    ],
+    "answer": ["B"],
+    "explanation": "Critical rules buried mid-context suffer from positional attention effects. Placing them at the start or end, structurally separated from reference material, is the highest-leverage fix. Repeating the rule after every paragraph bloats the prompt and dilutes it further, reducing temperature affects sampling randomness, not rule salience, and switching the rule to upper case is superstition."
+  },
+  {
+    "id": "pro-2.5",
+    "domain": "Claude Models, Prompting & Context Engineering",
+    "domain_id": 2,
+    "weight": 13,
+    "type": "single",
+    "text": "A report-generation feature must return output in a precise house style: fixed section order, defined heading names, and tables in a specific layout. Written instructions describing the format produce output that is close but inconsistent. What is the most effective next refinement?",
+    "options": [
+      {"key": "A", "text": "Add one or two few-shot examples showing complete, correctly formatted outputs"},
+      {"key": "B", "text": "Increase max output tokens so the model has room to follow the format"},
+      {"key": "C", "text": "Raise the temperature to give the model more flexibility in interpreting the style"},
+      {"key": "D", "text": "Split the report into separate requests, one per section, and concatenate the results"}
+    ],
+    "answer": ["A"],
+    "explanation": "For precise format compliance, showing beats telling: complete few-shot exemplars give the model a concrete target that prose descriptions can't match. Increasing max output tokens addresses length, not fidelity, raising the temperature increases variation — the opposite of what's needed — and splitting the report into separate requests adds engineering without fixing per-section formatting."
+  },
+  {
+    "id": "pro-2.6",
+    "domain": "Claude Models, Prompting & Context Engineering",
+    "domain_id": 2,
+    "weight": 13,
+    "type": "single",
+    "text": "An assistant answers questions over a 150,000-token collection of engineering standards by placing the entire collection in the context window on every request. Answers citing content from the middle of the collection are noticeably less reliable, and cost per request is high. Which strategy best addresses both problems?",
+    "options": [
+      {"key": "A", "text": "Move the user's question to the top of the prompt, above the collection"},
+      {"key": "B", "text": "Ask the model to read the collection twice before answering"},
+      {"key": "C", "text": "Retrieve only the sections relevant to each question and include those, rather than the full collection"},
+      {"key": "D", "text": "Compress the collection by removing all headings and whitespace"}
+    ],
+    "answer": ["C"],
+    "explanation": "Retrieving only the relevant sections fixes both stated problems at once: it sidesteps mid-context recall degradation and cuts per-request tokens dramatically. Moving the question to the top barely affects recall and doesn't reduce cost, asking the model to read the collection twice doesn't reduce cost and adds latency, and compressing the collection by removing headings and whitespace saves trivial tokens while destroying document structure."
+  },
+  {
+    "id": "pro-2.7",
+    "domain": "Claude Models, Prompting & Context Engineering",
+    "domain_id": 2,
+    "weight": 13,
+    "type": "multi",
+    "select": 2,
+    "text": "A high-volume application has a large, mostly static prompt and rising per-request costs. Which TWO techniques most directly reduce per-request cost while preserving capability?",
+    "options": [
+      {"key": "A", "text": "Structure the prompt so the static prefix is cacheable, and enable prompt caching"},
+      {"key": "B", "text": "Increase max output tokens to reduce the number of follow-up requests"},
+      {"key": "C", "text": "Add more few-shot examples so the model succeeds on the first attempt"},
+      {"key": "D", "text": "Load specialised instructions on demand (e.g. modular prompts or Skills) instead of including every instruction in every request"},
+      {"key": "E", "text": "Move all static content into the user message instead of the system prompt"}
+    ],
+    "answer": ["A", "D"],
+    "explanation": "A cacheable static prefix cuts the cost of repeated content, and on-demand loading means each request pays only for the instructions it needs. Increasing max output tokens increases token usage, adding more few-shot examples increases token usage on every request, and moving all static content into the user message just relocates the same tokens."
+  },
+  {
+    "id": "pro-2.8",
+    "domain": "Claude Models, Prompting & Context Engineering",
+    "domain_id": 2,
+    "weight": 13,
+    "type": "multi",
+    "select": 2,
+    "text": "An architect is reviewing a system prompt that produces inconsistent behaviour. Which TWO practices are most likely to improve instruction adherence?",
+    "options": [
+      {"key": "A", "text": "Increase the temperature so the model explores more interpretations of the instructions"},
+      {"key": "B", "text": "Organise the prompt into clearly delimited sections with explicit priority when rules conflict"},
+      {"key": "C", "text": "Place the most critical rules in the middle of the prompt where the model spends most attention"},
+      {"key": "D", "text": "Remove all structure so the prompt reads as natural, flowing prose"},
+      {"key": "E", "text": "Include concrete examples of correct handling for the cases the model gets wrong"}
+    ],
+    "answer": ["B", "E"],
+    "explanation": "Clear structure with explicit conflict priority removes ambiguity, and concrete examples of the failing cases anchor the desired behaviour. Increasing the temperature adds variance, placing critical rules in the middle of the prompt places them at the position of weakest attention, and removing structure strips away the structure that aids adherence."
+  }
+]
